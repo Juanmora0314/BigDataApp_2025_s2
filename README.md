@@ -1,9 +1,11 @@
-# Proyecto de BIGDATA Para la maestria en Analaitica de datos 2025-S2
-Aplicacion: Busqueda documentos normatividad de la pagina de la DIAN
+# Proyecto de BIG DATA para la Maestría en Analítica de Datos 2025-S2
+Aplicación: Búsqueda de documentos de normatividad del Ministerio de Minas y Energía
 
 # Autor
-Nombre: Juan Sebastian Mora Zapata 
+Nombre: Juan Sebastian Mora Zapata  
 Email: jmoraz@ucentral.edu.co
 
-# Descripcion
-En este proyecto de BigData llevaremos a cabo la aplicacion de conocimientos obtenidos durante el semestre 2025-s2 en donde haremos una mini pagina Web de busqueda de documentos de normativa de la entidad de direccion de impuestos y aduanas nacionales (DIAN)
+# Descripción
+En este proyecto de Big Data desarrollamos una Landing Page que permite buscar y consultar documentos de normatividad del Ministerio de Minas y Energía.  
+A partir del repositorio normativo oficial se realiza web scraping, extracción de texto de los PDFs y posterior indexación en Elasticsearch para habilitar búsquedas de texto, mientras que MongoDB se utiliza como base de datos para la gestión de usuarios de la aplicación.
+
