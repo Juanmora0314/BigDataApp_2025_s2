@@ -6,7 +6,7 @@ requests
 bcrypt
 pandas
 numpy
-elasticsearch==8.11.0
+elasticsearch==9.2.1
 beautifulsoup4
 lxml
 spacy
