@@ -412,12 +412,10 @@ class ElasticSearch:
 # ================== Bloque de prueba opcional ==================
 
 if __name__ == "__main__":
-    """
-    Prueba rápida desde terminal:
+    # Prueba rápida desde terminal (ejemplo en Windows):
+    # PS> cd C:\Users\...\BigDataApp_2025_s2
+    # PS> python -m Helpers.elastic
 
-    PS> cd C:\Users\...\BigDataApp_2025_s2
-    PS> python -m Helpers.elastic
-    """
     print("Probando conexión a Elasticsearch (MinMinas)...\n")
 
     es = ElasticSearch()

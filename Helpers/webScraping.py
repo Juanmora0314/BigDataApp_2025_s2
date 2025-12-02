@@ -1,5 +1,5 @@
 """
-Módulo: webScrapingMinMinas.py
+Módulo: webScraping.py
 Web-scraping del repositorio normativo del Ministerio de Minas y Energía
 y carga de documentos en Elasticsearch.
 
@@ -13,7 +13,6 @@ Pipeline:
 
 import os
 import time
-import json
 from datetime import datetime
 from typing import List, Dict, Optional
 from urllib.parse import urljoin, urlparse
@@ -23,10 +22,11 @@ from bs4 import BeautifulSoup
 
 # Imports internos del proyecto
 try:
+    # Cuando se usa desde app.py (Helpers como paquete)
     from Helpers.funciones import Funciones
     from Helpers.elastic import ElasticSearch
 except ImportError:
-    # Por si se ejecuta como paquete (python -m Helpers.webScrapingMinMinas)
+    # Cuando se ejecuta como módulo dentro del paquete Helpers
     from .funciones import Funciones
     from .elastic import ElasticSearch
 
@@ -38,7 +38,7 @@ except ImportError:
     pass
 
 
-class WebScrapingMinMinas:
+class WebScraping:
     """
     Clase que implementa todo el flujo de scraping + indexación en Elastic
     para el repositorio normativo del Ministerio de Minas y Energía.
@@ -54,7 +54,7 @@ class WebScrapingMinMinas:
     ):
         # Directorios base donde se guardan PDFs, stats, etc.
         if base_dir is None:
-            # Carpeta base relativa al proyecto (ajústala si quieres otra ruta)
+            # Carpeta base relativa al proyecto
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             base_dir = os.path.join(project_root, "Files_WebScrapping_MinMinas")
 
@@ -285,7 +285,8 @@ class WebScrapingMinMinas:
         print()
         print("=" * 70)
         print(
-            f"Descarga completada: {len(downloaded_pdfs)} exitosos, {len(failed_downloads)} errores"
+            f"Descarga completada: {len(downloaded_pdfs)} exitosos, "
+            f"{len(failed_downloads)} errores"
         )
         print("=" * 70)
         print()
@@ -324,7 +325,7 @@ class WebScrapingMinMinas:
             # 1) Intento de extracción de texto "normal"
             texto = Funciones.extraer_texto_pdf(pdf_path)
 
-            # 2) Si viene vacío, podrías intentar OCR con extraer_texto_pdf_ocr
+            # 2) Si viene vacío, intentar OCR
             if not texto.strip():
                 try:
                     texto = Funciones.extraer_texto_pdf_ocr(pdf_path)
@@ -425,7 +426,7 @@ class WebScrapingMinMinas:
 if __name__ == "__main__":
     print(">>> INICIANDO PIPELINE MINMINAS → ELASTIC <<<\n")
 
-    scraper = WebScrapingMinMinas(
+    scraper = WebScraping(
         base_dir=None,     # usa la ruta por defecto dentro del proyecto
         max_pdfs=200,
         max_pages=100,

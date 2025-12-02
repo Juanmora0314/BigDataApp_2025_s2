@@ -4,7 +4,7 @@ Gestión de usuarios en MongoDB para la app de MinMinas.
 
 Requiere variables de entorno (por ejemplo en .env):
 
-MONGO_URI=mongodb+srv://JuanMora:MoraJuan@cluster0.lbbzisf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+MONGO_URI=mongodb+srv://usuario:password@cluster/... 
 MONGO_DB=minminas_app
 MONGO_COLECCION=usuarios
 """
@@ -57,15 +57,76 @@ class MongoDBUsuarios:
     }
     """
 
-    def __init__(self, uri: str, db_name: str, coleccion: str = "usuarios"):
-        """Inicializa conexión a MongoDB."""
-        self.client = MongoClient(uri)
-        self.db = self.client[db_name]
-        self.col = self.db[coleccion]
+    def __init__(
+        self,
+        uri: Optional[str] = None,
+        db_name: Optional[str] = None,
+        coleccion: str = "usuarios",
+        create_indexes: bool = True,
+    ):
+        """
+        Inicializa conexión a MongoDB.
 
-        # Crear índices únicos en email y username
-        self.col.create_index([("email", ASCENDING)], unique=True)
-        self.col.create_index([("username", ASCENDING)], unique=True)
+        Args:
+            uri: URI de conexión a MongoDB (si None, usa MONGO_URI).
+            db_name: Nombre de la base de datos (si None, usa MONGO_DB).
+            coleccion: Nombre de la colección de usuarios.
+            create_indexes: Si True, intenta crear índices (email/username únicos).
+        """
+        self.client = MongoClient(uri or MONGO_URI)
+        self.db = self.client[db_name or MONGO_DB]
+        self.col = self.db[coleccion or MONGO_COLECCION]
+
+        if create_indexes:
+            self._ensure_indexes()
+
+    # ------------------------------------------------------------------
+    # Índices
+    # ------------------------------------------------------------------
+    def _ensure_indexes(self) -> None:
+        """
+        Crea índices únicos en email y username.
+
+        Si ya existen datos duplicados, se captura DuplicateKeyError para que
+        la app no se caiga. En ese caso:
+        - NO se crea el índice único.
+        - Se muestra por consola qué email/username generó conflicto.
+        """
+        # Índice único en email
+        try:
+            self.col.create_index(
+                [("email", ASCENDING)],
+                unique=True,
+                name="uniq_email",
+            )
+        except DuplicateKeyError as e:
+            details = getattr(e, "details", {}) or {}
+            dup = details.get("keyValue", {})
+            print("\n[MongoDBUsuarios] ⚠ No se pudo crear índice único en 'email'.")
+            if dup:
+                print(f"  Email duplicado en la colección: {dup.get('email')}")
+            print("  Limpia los duplicados en MongoDB y vuelve a arrancar la app "
+                  "si quieres que 'email' sea realmente único.\n")
+        except Exception as e:
+            print(f"[MongoDBUsuarios] Error genérico creando índice 'email': {e}")
+
+        # Índice único en username
+        try:
+            self.col.create_index(
+                [("username", ASCENDING)],
+                unique=True,
+                name="uniq_username",
+            )
+        except DuplicateKeyError as e:
+            details = getattr(e, "details", {}) or {}
+            dup = details.get("keyValue", {})
+            print("\n[MongoDBUsuarios] ⚠ No se pudo crear índice único en 'username'.")
+            if dup:
+                print(f"  Username duplicado en la colección: {dup.get('username')}")
+            print("  Limpia los duplicados en MongoDB y vuelve a arrancar la app "
+                  "si quieres que 'username' sea realmente único.\n")
+        except Exception as e:
+            print(f"[MongoDBUsuarios] Error genérico creando índice 'username': {e}")
 
     # ------------------------------------------------------------------
     # Conexión
@@ -87,7 +148,7 @@ class MongoDBUsuarios:
         email: str,
         password: str,
         rol: str = "analista",
-        activo: bool = True
+        activo: bool = True,
     ) -> Optional[str]:
         """
         Crea un nuevo usuario con contraseña hasheada (bcrypt).
@@ -102,14 +163,14 @@ class MongoDBUsuarios:
             "activo": activo,
             "created_at": ahora,
             "updated_at": ahora,
-            "ultimo_login": None
+            "ultimo_login": None,
         }
 
         try:
             res = self.col.insert_one(doc)
             return str(res.inserted_id)
         except DuplicateKeyError as e:
-            print(f"[MongoDBUsuarios] Usuario/email duplicado: {e}")
+            print(f"[MongoDBUsuarios] Usuario/email duplicado al crear usuario: {e}")
             return None
         except Exception as e:
             print(f"[MongoDBUsuarios] Error al crear usuario: {e}")
@@ -129,8 +190,8 @@ class MongoDBUsuarios:
                 "activo": True,
                 "$or": [
                     {"username": usuario_o_email.strip().lower()},
-                    {"email": usuario_o_email.strip().lower()}
-                ]
+                    {"email": usuario_o_email.strip().lower()},
+                ],
             }
             user = self.col.find_one(filtro)
             if not user:
@@ -142,10 +203,12 @@ class MongoDBUsuarios:
             # Actualizar último login
             self.col.update_one(
                 {"_id": user["_id"]},
-                {"$set": {
-                    "ultimo_login": datetime.utcnow(),
-                    "updated_at": datetime.utcnow()
-                }}
+                {
+                    "$set": {
+                        "ultimo_login": datetime.utcnow(),
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
             )
 
             # Normalizar _id → id
@@ -201,7 +264,7 @@ class MongoDBUsuarios:
 
             res = self.col.update_one(
                 {"_id": ObjectId(user_id)},
-                {"$set": datos}
+                {"$set": datos},
             )
             return res.matched_count == 1
         except Exception as e:
@@ -214,10 +277,12 @@ class MongoDBUsuarios:
             hash_nuevo = bcrypt.hash(nueva_password)
             res = self.col.update_one(
                 {"_id": ObjectId(user_id)},
-                {"$set": {
-                    "password_hash": hash_nuevo,
-                    "updated_at": datetime.utcnow()
-                }}
+                {
+                    "$set": {
+                        "password_hash": hash_nuevo,
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
             )
             return res.matched_count == 1
         except Exception as e:
@@ -238,10 +303,12 @@ class MongoDBUsuarios:
         try:
             res = self.col.update_one(
                 {"_id": ObjectId(user_id)},
-                {"$set": {
-                    "activo": False,
-                    "updated_at": datetime.utcnow()
-                }}
+                {
+                    "$set": {
+                        "activo": False,
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
             )
             return res.matched_count == 1
         except Exception as e:
@@ -266,14 +333,22 @@ if __name__ == "__main__":
 
     print("Conexión OK? ->", mongo_users.test_connection())
 
-    # Crear usuario de prueba
-    uid = mongo_users.crear_usuario(
-        username="minminas_test",
-        email="minminas_test@example.com",
-        password="Secreto123!",
-        rol="admin"
-    )
-    print("ID usuario creado:", uid)
+    # Crear usuario de prueba solo si no existe
+    username_test = "minminas_test"
+    email_test = "minminas_test@example.com"
+
+    ya_existe = mongo_users.obtener_usuario(username_test)
+    if ya_existe:
+        print(f"\nUsuario de prueba '{username_test}' ya existe, no se crea de nuevo.")
+        uid = ya_existe["id"]
+    else:
+        uid = mongo_users.crear_usuario(
+            username=username_test,
+            email=email_test,
+            password="Secreto123!",
+            rol="admin",
+        )
+        print("ID usuario creado:", uid)
 
     # Intentar login
     if uid:
