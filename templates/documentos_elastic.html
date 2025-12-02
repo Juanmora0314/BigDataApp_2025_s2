@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MinMinas · Cargar Normatividad a Elastic</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+          crossorigin="anonymous">
+
+    <!-- Iconos Bootstrap -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Estilos propios -->
+    <link href="{{ url_for('static', filename='css/gestor.css') }}" rel="stylesheet">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h3 mb-0">
+                MinMinas · Gestión Normatividad (Elastic)
+                <b>[{{ usuario }}]</b>
+            </h2>
+            <nav>
+                <ul class="nav">
+                    <li class="nav-item"><a class="nav-link" href="/admin">Volver al Admin</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/">Salir</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<hr>
+
+<div class="container mt-4">
+    <h1 class="h3 mb-3">Cargar documentos de normatividad a ElasticSearch</h1>
+    <p class="text-muted mb-4">
+        Desde esta pantalla puedes cargar normas (JSON o PDFs procesados) al índice de ElasticSearch
+        usado por el buscador público de normatividad del Ministerio de Minas y Energía.
+    </p>
+
+    <!-- 1. Selección de índice -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">1. Seleccionar índice de destino</h5>
+            <p class="text-muted mb-2">
+                El índice recomendado para este proyecto es
+                <code>minminas-normatividad</code>, pero puedes seleccionar cualquier otro que tengas configurado.
+            </p>
+            <div class="mb-3">
+                <label for="select_index" class="form-label">Índice de ElasticSearch</label>
+                <select class="form-select" id="select_index" name="select_index">
+                    <option value="">Cargando índices...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Selección de método -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">2. Seleccionar método de carga</h5>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input"
+                       type="radio"
+                       name="metodo_carga"
+                       id="radio_zip"
+                       value="zip"
+                       checked>
+                <label class="form-check-label" for="radio_zip">
+                    <strong>ZIP con JSON</strong> –
+                    Cargar normas ya procesadas en archivos <code>.json</code> (ej. salida de un pipeline previo).
+                </label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input"
+                       type="radio"
+                       name="metodo_carga"
+                       id="radio_webscraping"
+                       value="webscraping">
+                <label class="form-check-label" for="radio_webscraping">
+                    <strong>Web Scraping</strong> –
+                    Extraer y procesar documentos directamente desde la web (p.ej. sitios oficiales: DO, MinMinas).
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3A. Opciones ZIP -->
+    <div class="card mb-4" id="opciones_zip">
+        <div class="card-body">
+            <h5 class="card-title">3. Cargar archivo ZIP (normas en JSON)</h5>
+            <p class="text-muted">
+                El archivo ZIP debe contener normas ya procesadas en formato <code>.json</code>,
+                listas para indexarse en ElasticSearch.
+            </p>
+            <div class="mb-3">
+                <label for="file_zip" class="form-label">Seleccionar archivo ZIP</label>
+                <input type="file"
+                       class="form-control"
+                       id="file_zip"
+                       accept=".zip">
+                <div class="form-text">El ZIP debe contener únicamente archivos <code>.json</code>.</div>
+            </div>
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="procesarZip()">
+                <i class="bi bi-upload"></i> Procesar ZIP
+            </button>
+        </div>
+    </div>
+
+    <!-- 3B. Opciones WebScraping -->
+    <div class="card mb-4" id="opciones_webscraping" style="display: none;">
+        <div class="card-body">
+            <h5 class="card-title">3. Configurar Web Scraping (normatividad)</h5>
+
+            <div class="mb-3">
+                <label for="url_webscraping" class="form-label">URL de inicio</label>
+                <input type="url"
+                       class="form-control"
+                       id="url_webscraping"
+                       placeholder="https://www.minenergia.gov.co/...">
+                <div class="form-text">
+                    URL inicial desde donde se extraerán enlaces a normas (resoluciones, decretos, circulares, etc.).
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="extensiones_navegar" class="form-label">Extensiones a navegar</label>
+                <input type="text"
+                       class="form-control"
+                       id="extensiones_navegar"
+                       placeholder="aspx, php, html"
+                       value="aspx">
+                <div class="form-text">
+                    Separadas por comas. Se usan para seguir enlaces internos de navegación
+                    (ej. <code>aspx, php, html</code>).
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="tipos_archivos" class="form-label">Tipos de archivos a descargar</label>
+                <input type="text"
+                       class="form-control"
+                       id="tipos_archivos"
+                       placeholder="pdf, txt"
+                       value="pdf">
+                <div class="form-text">
+                    Separadas por comas. Tipos de archivo de las normas a descargar (ej. <code>pdf, txt</code>).
+                </div>
+            </div>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="procesarWebScraping()">
+                <i class="bi bi-download"></i> Iniciar Web Scraping
+            </button>
+        </div>
+    </div>
+
+    <!-- 4. Resultados y tabla de archivos -->
+    <div id="seccion_resultados" style="display: none;">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">4. Archivos procesados</h5>
+
+                <div id="info_resultados" class="alert alert-info mb-3"></div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="seleccionar_todos"
+                               onchange="toggleSeleccionarDesdeControl()">
+                        <label class="form-check-label" for="seleccionar_todos">
+                            Seleccionar todos los archivos
+                        </label>
+                    </div>
+
+                    <button type="button"
+                            class="btn btn-success"
+                            id="btn_cargar_seleccionados"
+                            onclick="cargarSeleccionados()">
+                        <i class="bi bi-cloud-upload"></i>
+                        <span id="texto_boton_cargar">Cargar seleccionados</span>
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover align-middle">
+                        <thead class="table-dark">
+                        <tr>
+                            <th width="50" class="text-center">
+                                <input type="checkbox"
+                                       id="check_header"
+                                       onchange="toggleSeleccionarDesdeHeader()">
+                            </th>
+                            <th>Archivo</th>
+                            <th>Tipo</th>
+                            <th>Tamaño</th>
+                            <th>Estado</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabla_archivos">
+                        <!-- Se llenará dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensaje de carga (spinner) -->
+    <div id="div_cargando"
+         class="text-center mt-4"
+         style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2" id="mensaje_cargando">Procesando tu solicitud...</p>
+    </div>
+</div>
+
+<footer class="text-center mt-5">
+    <p class="mb-0">Creado por {{ creador }}</p>
+    <p class="mb-0" id="current-year"></p>
+    <p class="mb-0" id="version_app">{{ version }}</p>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq4cvVmFh9vju3MXgpoK"
+        crossorigin="anonymous"></script>
+
+<script>
+    // ========= Variables globales =========
+    let archivosActuales = [];
+    let metodoActual = 'zip';
+
+    // Año en el footer
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+
+    // Al cargar la página
+    document.addEventListener('DOMContentLoaded', function () {
+        cargarIndices();
+        configurarRadioButtons();
+    });
+
+    // ========= Configuración de radios (ZIP vs WebScraping) =========
+    function configurarRadioButtons() {
+        document.querySelectorAll('input[name="metodo_carga"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                if (this.value === 'zip') {
+                    document.getElementById('opciones_zip').style.display = 'block';
+                    document.getElementById('opciones_webscraping').style.display = 'none';
+                    metodoActual = 'zip';
+                } else {
+                    document.getElementById('opciones_zip').style.display = 'none';
+                    document.getElementById('opciones_webscraping').style.display = 'block';
+                    metodoActual = 'webscraping';
+                }
+                // Ocultar resultados al cambiar método
+                document.getElementById('seccion_resultados').style.display = 'none';
+            });
+        });
+    }
+
+    // ========= Cargar lista de índices desde backend =========
+    function cargarIndices() {
+        fetch('/listar-indices-elastic')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('select_index');
+                select.innerHTML = '<option value="">Seleccione un índice</option>';
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    select.innerHTML =
+                        '<option value="">No se encontraron índices en Elastic</option>';
+                    return;
+                }
+
+                data.forEach(indice => {
+                    const option = document.createElement('option');
+                    option.value = indice.nombre;
+                    option.textContent = `${indice.nombre} (${indice.total_documentos} docs)`;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error al cargar índices:', error);
+                document.getElementById('select_index').innerHTML =
+                    '<option value="">Error al cargar índices</option>';
+            });
+    }
+
+    // ========= Procesar ZIP =========
+    function procesarZip() {
+        const fileInput = document.getElementById('file_zip');
+        const selectIndex = document.getElementById('select_index');
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Por favor, selecciona un archivo ZIP con normas en JSON.');
+            return;
+        }
+
+        if (!selectIndex.value) {
+            alert('Por favor, selecciona un índice de destino en ElasticSearch.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('index', selectIndex.value);
+
+        mostrarCargando('Procesando archivo ZIP...');
+
+        fetch('/procesar-zip-elastic', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                ocultarCargando();
+
+                if (data.success) {
+                    archivosActuales = data.archivos || [];
+                    mostrarResultados(data);
+                } else {
+                    alert('Error: ' + (data.error || 'Error desconocido al procesar ZIP'));
+                }
+            })
+            .catch(error => {
+                ocultarCargando();
+                console.error('Error al procesar ZIP:', error);
+                alert('Error al procesar ZIP');
+            });
+    }
+
+    // ========= Procesar Web Scraping =========
+    function procesarWebScraping() {
+        const url = document.getElementById('url_webscraping').value.trim();
+        const extensionesNavegar = document.getElementById('extensiones_navegar').value.trim();
+        const tiposArchivos = document.getElementById('tipos_archivos').value.trim();
+        const selectIndex = document.getElementById('select_index');
+
+        if (!url) {
+            alert('Por favor, ingresa una URL de inicio para el Web Scraping.');
+            return;
+        }
+
+        if (!selectIndex.value) {
+            alert('Por favor, selecciona un índice de destino en ElasticSearch.');
+            return;
+        }
+
+        mostrarCargando('Realizando Web Scraping... Esto puede tardar varios minutos.');
+
+        fetch('/procesar-webscraping-elastic', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: url,
+                extensiones_navegar: extensionesNavegar,
+                tipos_archivos: tiposArchivos,
+                index: selectIndex.value
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                ocultarCargando();
+
+                if (data.success) {
+                    archivosActuales = data.archivos || [];
+                    mostrarResultados(data);
+                } else {
+                    alert('Error: ' + (data.error || 'Error desconocido en Web Scraping'));
+                }
+            })
+            .catch(error => {
+                ocultarCargando();
+                console.error('Error Web Scraping:', error);
+                alert('Error al procesar Web Scraping');
+            });
+    }
+
+    // ========= Mostrar resultados de ZIP/WebScraping =========
+    function mostrarResultados(data) {
+        document.getElementById('seccion_resultados').style.display = 'block';
+
+        const totalArchivos = (data.archivos || []).length;
+        let infoHtml = `<strong>Total de archivos detectados:</strong> ${totalArchivos}`;
+
+        if (data.mensaje) {
+            infoHtml += `<br>${data.mensaje}`;
+        }
+
+        // Stats opcionales de WebScraping
+        if (data.stats) {
+            const stats = data.stats;
+            infoHtml += `<br><strong>Enlaces totales:</strong> ${stats.total_enlaces || 0}`;
+            infoHtml += ` · <strong>Descargados:</strong> ${stats.descargados || 0}`;
+            infoHtml += ` · <strong>Errores:</strong> ${stats.errores || 0}`;
+        }
+
+        document.getElementById('info_resultados').innerHTML = infoHtml;
+
+        // Texto del botón según método
+        if (metodoActual === 'webscraping') {
+            document.getElementById('texto_boton_cargar').textContent =
+                'Aplicar PLN / Cargar seleccionados a Elastic';
+        } else {
+            document.getElementById('texto_boton_cargar').textContent =
+                'Cargar seleccionados a Elastic';
+        }
+
+        const tbody = document.getElementById('tabla_archivos');
+        tbody.innerHTML = '';
+
+        (data.archivos || []).forEach((archivo, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="text-center">
+                    <input type="checkbox"
+                           class="archivo-checkbox"
+                           data-index="${index}"
+                           checked>
+                </td>
+                <td>${archivo.nombre || '(sin nombre)'}</td>
+                <td><span class="badge bg-secondary">${archivo.extension || 'json'}</span></td>
+                <td>${formatearTamaño(archivo.tamaño || 0)}</td>
+                <td><span class="badge bg-warning">Pendiente</span></td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        // Reset de los "seleccionar todos"
+        setSeleccionEstado(true);
+
+        // Scroll suave a la sección de resultados
+        document.getElementById('seccion_resultados')
+            .scrollIntoView({behavior: 'smooth'});
+    }
+
+    // ========= Cargar archivos seleccionados a Elastic =========
+    function cargarSeleccionados() {
+        const checkboxes = document.querySelectorAll('.archivo-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert('Por favor, selecciona al menos un archivo para cargar.');
+            return;
+        }
+
+        const selectIndex = document.getElementById('select_index');
+        if (!selectIndex.value) {
+            alert('Por favor, selecciona un índice de destino en ElasticSearch.');
+            return;
+        }
+
+        const indicesSeleccionados = Array.from(checkboxes)
+            .map(cb => parseInt(cb.dataset.index));
+        const archivosSeleccionados = indicesSeleccionados.map(i => archivosActuales[i]);
+
+        mostrarCargando('Cargando documentos seleccionados a ElasticSearch...');
+
+        fetch('/cargar-documentos-elastic', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                archivos: archivosSeleccionados,
+                index: selectIndex.value,
+                metodo: metodoActual
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                ocultarCargando();
+
+                if (data.success) {
+                    alert(
+                        `Carga completada:\n` +
+                        `- Documentos indexados: ${data.indexados}\n` +
+                        `- Errores: ${data.errores}`
+                    );
+
+                    // Actualizar estado en la tabla
+                    checkboxes.forEach(cb => {
+                        const row = cb.closest('tr');
+                        const badge = row.querySelector('td:last-child span');
+                        badge.className = 'badge bg-success';
+                        badge.textContent = 'Cargado';
+                        cb.disabled = true;
+                    });
+
+                    // Refrescar índices por si cambió el número de docs
+                    cargarIndices();
+                } else {
+                    alert('Error al cargar documentos: ' + (data.error || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                ocultarCargando();
+                console.error('Error al cargar documentos:', error);
+                alert('Error al cargar documentos a ElasticSearch');
+            });
+    }
+
+    // ========= Manejo de "seleccionar todos" =========
+    function setSeleccionEstado(estado) {
+        const header = document.getElementById('check_header');
+        const control = document.getElementById('seleccionar_todos');
+        if (header) header.checked = estado;
+        if (control) control.checked = estado;
+
+        const checkboxes = document.querySelectorAll('.archivo-checkbox:not(:disabled)');
+        checkboxes.forEach(cb => cb.checked = estado);
+    }
+
+    function toggleSeleccionarDesdeHeader() {
+        const estado = document.getElementById('check_header').checked;
+        setSeleccionEstado(estado);
+    }
+
+    function toggleSeleccionarDesdeControl() {
+        const estado = document.getElementById('seleccionar_todos').checked;
+        setSeleccionEstado(estado);
+    }
+
+    // ========= Formatear tamaño de archivo =========
+    function formatearTamaño(bytes) {
+        if (!bytes || bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return (Math.round(bytes / Math.pow(k, i) * 100) / 100) + ' ' + sizes[i];
+    }
+
+    // ========= Spinner =========
+    function mostrarCargando(mensaje) {
+        document.getElementById('mensaje_cargando').textContent = mensaje;
+        document.getElementById('div_cargando').style.display = 'block';
+    }
+
+    function ocultarCargando() {
+        document.getElementById('div_cargando').style.display = 'none';
+    }
+</script>
+</body>
+</html>
