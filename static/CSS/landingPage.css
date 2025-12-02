@@ -16,18 +16,10 @@ body {
 .navbar-minminas {
   background-color: #ffffff;
   box-shadow: 0 2px 6px rgba(15,23,42,0.1);
-  padding: 0.75rem 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 20;
 }
 
 .navbar-minminas .navbar-inner {
   max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .navbar-minminas .brand {
@@ -36,14 +28,12 @@ body {
   color: #0b8142;
 }
 
-.navbar-minminas .nav-links a {
+.navbar-minminas .nav-link {
   color: #1e293b;
-  text-decoration: none;
-  margin-left: 1rem;
   font-size: 0.95rem;
 }
 
-.navbar-minminas .nav-links a:hover {
+.navbar-minminas .nav-link:hover {
   color: #0b8142;
 }
 
@@ -69,7 +59,7 @@ body {
 .hero-main {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centra verticalmente la columna izquierda */
+  justify-content: center;
 }
 
 .hero-side-card {
@@ -207,18 +197,7 @@ body {
     padding: 2rem 1.5rem;
   }
 
-  .navbar-minminas {
-    padding: 0.75rem 1rem;
-  }
-
   .navbar-minminas .navbar-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: .5rem;
-  }
-
-  .navbar-minminas .nav-links {
-    display: flex;
-    flex-wrap: wrap;
+    padding-inline: 1rem;
   }
 }

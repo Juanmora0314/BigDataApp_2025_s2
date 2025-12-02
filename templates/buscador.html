@@ -1,404 +1,264 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador de Normatividad - MinMinas</title>
+{% extends "base.html" %}
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
-          crossorigin="anonymous">
+{% block title %}MinMinas · Buscador de Normatividad{% endblock %}
 
-    <!-- Estilos propios -->
-    <link href="{{ url_for('static', filename='css/landingPage.css') }}" rel="stylesheet">
-
-    <style>
-        .resultados-container {
-            margin-top: 2rem;
-        }
-        .aggs-list {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            padding: 1rem;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        .aggs-item {
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .aggs-item:last-child {
-            border-bottom: none;
-        }
-        .aggs-item h6 {
-            color: #495057;
-            margin-bottom: 0.5rem;
-        }
-        .aggs-item ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .aggs-item li {
-            padding: 0.25rem 0;
-            font-size: 0.9rem;
-        }
-        .aggs-item .badge {
-            margin-left: 0.5rem;
-        }
-        .tabla-resultados {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        .json-view {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            padding: 0.5rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-    </style>
-</head>
-<body>
-<header class="header">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1 class="h3 mb-0">MinMinas · Buscador de Normatividad</h1>
-            <nav>
-                <ul class="nav">
-                    <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="/buscador"><b>Buscador</b></a></li>
-                    <li class="nav-item"><a class="nav-link" href="/about">Acerca de</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/login">Ingresar</a></li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-</header>
-
-<div class="container mt-4">
+{% block content %}
+<div class="container py-4">
+  <section class="mb-5">
     <h1 class="text-center mb-3">Buscador de normas y documentos</h1>
     <p class="text-center text-muted mb-4">
-        Consulta la normatividad y documentos técnicos indexados en Elasticsearch
-        para el Ministerio de Minas y Energía.
+      Consulta la normatividad y documentos técnicos indexados en Elasticsearch
+      para el Ministerio de Minas y Energía.
     </p>
 
     <!-- Formulario de búsqueda -->
-    <div class="card mb-4">
+    <form id="form-busqueda" class="mx-auto mb-4" style="max-width: 980px;">
+      <div class="card">
         <div class="card-body">
-            <form id="formBuscar" onsubmit="buscar(event)">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-10">
-                        <label for="textoBuscar" class="form-label">Texto a buscar</label>
-                        <input type="text"
-                               class="form-control"
-                               id="textoBuscar"
-                               name="texto"
-                               placeholder="Ej: 'reglamentación de exploración', número de resolución, palabra clave, etc."
-                               required>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            Buscar
-                        </button>
-                    </div>
-                </div>
-            </form>
+          <label class="form-label" for="texto_busqueda">Texto a buscar</label>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              id="texto_busqueda"
+              name="texto_busqueda"
+              placeholder="Ej: 'reglamentación de exploración', número de resolución, palabra clave, etc."
+              required
+            >
+            <button type="submit" class="btn btn-primary">
+              Buscar
+            </button>
+          </div>
         </div>
-    </div>
+      </div>
+    </form>
 
-    <!-- Mensaje de carga -->
-    <div id="div_cargando" class="text-center mt-4" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Buscando...</span>
-        </div>
-        <p class="mt-2">Buscando documentos... Por favor espere.</p>
-    </div>
+    <!-- Mensajes de estado -->
+    <div id="alerta-busqueda" class="alert d-none mx-auto" style="max-width: 980px;"></div>
 
     <!-- Resultados -->
-    <div id="divResultados" class="resultados-container" style="display: none;">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    Resultados de la búsqueda –
-                    Total encontrado: <span id="totalResultados">0</span>
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <!-- Columna 1: Aggregations (filtros/resumen) -->
-                    <div class="col-md-3">
-                        <div class="aggs-list">
-                            <h6 class="mb-3">Resumen por filtros</h6>
-                            <div id="divAggregations">
-                                <!-- Agregaciones se pintan aquí -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Columna 2: Tabla de resultados -->
-                    <div class="col-md-9">
-                        <div class="tabla-resultados">
-                            <table class="table table-striped table-bordered table-hover">
-                                <thead class="table-dark">
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 10%;">Año</th>
-                                    <th style="width: 15%;">Tipo</th>
-                                    <th style="width: 20%;">Entidad</th>
-                                    <th style="width: 10%;">Score</th>
-                                    <th style="width: 40%;">Contenido</th>
-                                </tr>
-                                </thead>
-                                <tbody id="tablaResultados">
-                                <!-- Resultados se pintan aquí -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mensaje de error -->
-    <div id="divError" class="alert alert-danger mt-4" style="display: none;" role="alert">
-        <strong>Error:</strong> <span id="mensajeError"></span>
-    </div>
+    <section id="resultados-section" class="mx-auto d-none" style="max-width: 980px;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Resultados</h2>
+        <small class="text-muted">
+          Total encontrados: <span id="total-resultados">0</span>
+        </small>
+      </div>
+      <div id="resultados-container" class="list-group"></div>
+    </section>
+  </section>
 </div>
 
-<footer class="text-center mt-5">
-    <p class="mb-0">Creado por {{ creador }}</p>
-    <p class="mb-0" id="current-year"></p>
-    <p class="mb-0" id="version_app">{{ version }}</p>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-        crossorigin="anonymous"></script>
-
+<!-- JS específico del buscador -->
 <script>
-    // Año en el footer
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('form-busqueda');
+  const input = document.getElementById('texto_busqueda');
+  const alerta = document.getElementById('alerta-busqueda');
+  const resultadosSection = document.getElementById('resultados-section');
+  const resultadosContainer = document.getElementById('resultados-container');
+  const totalResultadosSpan = document.getElementById('total-resultados');
 
-    // Variable global para guardar la última búsqueda (para el modal)
-    let ultimaBusqueda = [];
+  let ultimaBusqueda = [];
 
-    // ------------------ BÚSQUEDA PRINCIPAL ------------------ //
-    function buscar(event) {
-        event.preventDefault();
+  function mostrarAlerta(mensaje, tipo = 'info') {
+    alerta.textContent = mensaje;
+    alerta.className = 'alert alert-' + tipo + ' mx-auto';
+    alerta.style.maxWidth = '980px';
+  }
 
-        const textoBuscar = document.getElementById('textoBuscar').value.trim();
+  function ocultarAlerta() {
+    alerta.textContent = '';
+    alerta.className = 'alert d-none mx-auto';
+  }
 
-        if (!textoBuscar) {
-            alert('Por favor, ingrese un texto para buscar');
-            return;
-        }
+  function limpiarResultados() {
+    resultadosContainer.innerHTML = '';
+    resultadosSection.classList.add('d-none');
+    totalResultadosSpan.textContent = '0';
+  }
 
-        // Reset de UI
-        document.getElementById('divResultados').style.display = 'none';
-        document.getElementById('divError').style.display = 'none';
-        document.getElementById('div_cargando').style.display = 'block';
+  // Intenta adaptar varios formatos posibles de respuesta
+  function extraerHits(data) {
+    if (Array.isArray(data.hits)) {
+      return data.hits;
+    }
+    if (data.hits && Array.isArray(data.hits.hits)) {
+      return data.hits.hits;
+    }
+    if (Array.isArray(data.resultados)) {
+      return data.resultados;
+    }
+    return [];
+  }
 
-        fetch('/buscar-elastic', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                texto: textoBuscar,
-                campo: '_all'  // puedes cambiar esto si tu backend usa otro campo
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('div_cargando').style.display = 'none';
+  function extraerTotal(data, hits) {
+    if (typeof data.total === 'number') {
+      return data.total;
+    }
+    if (data.hits && typeof data.hits.total === 'number') {
+      return data.hits.total;
+    }
+    if (data.hits && data.hits.total && typeof data.hits.total.value === 'number') {
+      return data.hits.total.value;
+    }
+    return hits.length;
+  }
 
-            if (data.success) {
-                mostrarResultados(data);
-            } else {
-                mostrarError(data.error || 'Error desconocido al realizar la búsqueda.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('div_cargando').style.display = 'none';
-            mostrarError('Error de comunicación con el servidor.');
-        });
+  function renderResultados(data) {
+    const hits = extraerHits(data);
+    const total = extraerTotal(data, hits);
+
+    ultimaBusqueda = hits;
+    resultadosContainer.innerHTML = '';
+    totalResultadosSpan.textContent = total.toString();
+
+    if (!hits.length) {
+      resultadosContainer.innerHTML =
+        '<div class="list-group-item text-center text-muted">No se encontraron resultados.</div>';
+      resultadosSection.classList.remove('d-none');
+      return;
     }
 
-    // ------------------ PINTAR RESULTADOS ------------------ //
-    function mostrarResultados(data) {
-        const hits = data.hits || data.resultados || [];
-        const aggs = data.aggs || data.aggregations || {};
+    hits.forEach((hit, index) => {
+      const source = hit._source || hit.source || hit;
 
-        ultimaBusqueda = hits;  // guardamos para el modal
+      const anio =
+        source.anio ||
+        source.año ||
+        source.anio_publicacion ||
+        source.fecha ||
+        '';
 
-        // Total
-        document.getElementById('totalResultados').textContent =
-            (typeof data.total === 'number' ? data.total : hits.length);
+      const tipo =
+        source.tipo_norma ||
+        source.tipo_documento ||
+        source.tipo ||
+        '';
 
-        // Agregaciones
-        mostrarAggregations(aggs);
+      const entidad =
+        source.entidad ||
+        source.emisor ||
+        source.organismo ||
+        '';
 
-        // Hits en la tabla
-        mostrarHits(hits);
+      const titulo =
+        source.titulo ||
+        source.nombre_archivo ||
+        'Documento sin título';
 
-        // Mostrar contenedor
-        document.getElementById('divResultados').style.display = 'block';
-    }
+      const textoLargo =
+        source.resumen ||
+        source.extracto ||
+        source.texto ||
+        source.contenido ||
+        '';
 
-    // ------------------ AGREGACIONES ------------------ //
-    function mostrarAggregations(aggs) {
-        const divAggregations = document.getElementById('divAggregations');
-        divAggregations.innerHTML = '';
+      let snippet = textoLargo || titulo;
+      if (snippet.length > 260) {
+        snippet = snippet.slice(0, 260) + '…';
+      }
 
-        if (!aggs || Object.keys(aggs).length === 0) {
-            divAggregations.innerHTML =
-                '<p class="text-muted">No hay agregaciones configuradas para esta búsqueda.</p>';
-            return;
-        }
+      const score = (typeof hit._score === 'number')
+        ? hit._score.toFixed(4)
+        : null;
 
-        // Ejemplo 1: normas por año
-        if (aggs.normas_por_anio && aggs.normas_por_anio.buckets) {
-            const div = document.createElement('div');
-            div.className = 'aggs-item';
-            div.innerHTML = '<h6>Normas por año</h6><ul id="listNormasPorAnio"></ul>';
-            divAggregations.appendChild(div);
+      const item = document.createElement('div');
+      item.className = 'list-group-item list-group-item-action flex-column align-items-start';
 
-            const ul = document.getElementById('listNormasPorAnio');
-            aggs.normas_por_anio.buckets.forEach(bucket => {
-                const li = document.createElement('li');
-                li.innerHTML = `${bucket.key} <span class="badge bg-primary">${bucket.doc_count}</span>`;
-                ul.appendChild(li);
-            });
-        }
-
-        // Ejemplo 2: normas por entidad
-        if (aggs.normas_por_entidad && aggs.normas_por_entidad.buckets) {
-            const div = document.createElement('div');
-            div.className = 'aggs-item';
-            div.innerHTML = '<h6>Normas por entidad</h6><ul id="listNormasPorEntidad"></ul>';
-            divAggregations.appendChild(div);
-
-            const ul = document.getElementById('listNormasPorEntidad');
-            aggs.normas_por_entidad.buckets.forEach(bucket => {
-                const li = document.createElement('li');
-                li.innerHTML = `${bucket.key} <span class="badge bg-success">${bucket.doc_count}</span>`;
-                ul.appendChild(li);
-            });
-        }
-
-        // Ejemplo 3: normas por tipo (resolución, decreto, ley, etc.)
-        if (aggs.normas_por_tipo && aggs.normas_por_tipo.buckets) {
-            const div = document.createElement('div');
-            div.className = 'aggs-item';
-            div.innerHTML = '<h6>Normas por tipo</h6><ul id="listNormasPorTipo"></ul>';
-            divAggregations.appendChild(div);
-
-            const ul = document.getElementById('listNormasPorTipo');
-            aggs.normas_por_tipo.buckets.forEach(bucket => {
-                const li = document.createElement('li');
-                li.innerHTML = `${bucket.key} <span class="badge bg-info text-dark">${bucket.doc_count}</span>`;
-                ul.appendChild(li);
-            });
-        }
-    }
-
-    // ------------------ TABLA DE HITS ------------------ //
-    function mostrarHits(hits) {
-        const tablaResultados = document.getElementById('tablaResultados');
-        tablaResultados.innerHTML = '';
-
-        if (!hits || hits.length === 0) {
-            tablaResultados.innerHTML =
-                '<tr><td colspan="6" class="text-center">No se encontraron resultados.</td></tr>';
-            return;
-        }
-
-        hits.forEach((hit, index) => {
-            const row = document.createElement('tr');
-            const source = hit._source || {};
-
-            // Campos típicos de normatividad (usamos varios posibles nombres para hacer el front más robusto)
-            const anio = source.anio || source.año || source.anio_publicacion || '';
-            const tipo = source.tipo_norma || source.tipo_documento || source.tipo || '';
-            const entidad = source.entidad || source.emisor || source.organismo || '';
-            const contenidoCompleto =
-                source.titulo || source.nombre_archivo || source.contenido || source.texto || JSON.stringify(source);
-
-            let contenidoVista = contenidoCompleto.substring(0, 200);
-            if (contenidoCompleto.length > 200) {
-                contenidoVista += '...';
-            }
-
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${anio}</td>
-                <td>${tipo}</td>
-                <td>${entidad}</td>
-                <td>${hit._score ? hit._score.toFixed(4) : 'N/A'}</td>
-                <td>
-                    <div class="json-view">${contenidoVista}</div>
-                    <button class="btn btn-sm btn-link mt-1"
-                            onclick="mostrarDetalle(${index})"
-                            data-bs-toggle="modal"
-                            data-bs-target="#modalDetalle">
-                        Ver detalle
-                    </button>
-                </td>
-            `;
-            tablaResultados.appendChild(row);
-        });
-    }
-
-    // ------------------ ERRORES ------------------ //
-    function mostrarError(mensaje) {
-        document.getElementById('mensajeError').textContent = mensaje;
-        document.getElementById('divError').style.display = 'block';
-    }
-
-    // ------------------ MODAL DETALLE ------------------ //
-    function mostrarDetalle(index) {
-        const modalBody = document.getElementById('modalDetalleBody');
-        if (!ultimaBusqueda[index] || !modalBody) return;
-
-        const source = ultimaBusqueda[index]._source || {};
-        modalBody.innerHTML =
-            '<pre class="json-view" style="max-height: 500px; overflow-y: auto;">'
-            + JSON.stringify(source, null, 2) +
-            '</pre>';
-    }
-</script>
-
-<!-- Modal para mostrar detalle completo -->
-<div class="modal fade" id="modalDetalle" tabindex="-1"
-     aria-labelledby="modalDetalleLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalDetalleLabel">Detalle del documento</h5>
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
+      item.innerHTML = `
+        <div class="d-flex w-100 justify-content-between">
+          <div>
+            <h5 class="mb-1">${titulo}</h5>
+            <div class="small text-muted">
+              ${anio ? `<span class="me-2"><strong>Año:</strong> ${anio}</span>` : ''}
+              ${tipo ? `<span class="me-2"><strong>Tipo:</strong> ${tipo}</span>` : ''}
+              ${entidad ? `<span class="me-2"><strong>Entidad:</strong> ${entidad}</span>` : ''}
             </div>
-            <div class="modal-body" id="modalDetalleBody">
-                <!-- Contenido se carga por JS -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"
-                        data-bs-dismiss="modal">Cerrar</button>
-            </div>
+          </div>
+          <div class="text-end">
+            ${score !== null ? `<span class="badge bg-secondary">score ${score}</span>` : ''}
+            <div class="small text-muted">#${index + 1}</div>
+          </div>
         </div>
-    </div>
-</div>
+        <p class="mb-1 mt-2">${snippet}</p>
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-2 btn-detalle">
+          Ver detalle
+        </button>
+        <div class="mt-2 d-none detalle-json">
+          <pre class="bg-light border rounded p-2 small mb-0" style="max-height: 300px; overflow-y: auto;">
+${JSON.stringify(source, null, 2)}
+          </pre>
+        </div>
+      `;
 
-</body>
-</html>
+      // Toggle del detalle JSON
+      const btnDetalle = item.querySelector('.btn-detalle');
+      const detalleDiv = item.querySelector('.detalle-json');
+
+      btnDetalle.addEventListener('click', () => {
+        const oculto = detalleDiv.classList.contains('d-none');
+        if (oculto) {
+          detalleDiv.classList.remove('d-none');
+          btnDetalle.textContent = 'Ocultar detalle';
+        } else {
+          detalleDiv.classList.add('d-none');
+          btnDetalle.textContent = 'Ver detalle';
+        }
+      });
+
+      resultadosContainer.appendChild(item);
+    });
+
+    resultadosSection.classList.remove('d-none');
+  }
+
+  // Manejo del submit
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const texto = (input.value || '').trim();
+
+    if (!texto) {
+      mostrarAlerta('Por favor ingresa un texto para buscar.', 'warning');
+      return;
+    }
+
+    limpiarResultados();
+    mostrarAlerta('Buscando documentos... por favor espera.', 'info');
+
+    try {
+      const resp = await fetch('/buscar-elastic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          texto: texto,
+          size: 20, // puedes ajustar el tamaño si quieres
+        }),
+      });
+
+      if (!resp.ok) {
+        mostrarAlerta('Error al comunicarse con el servidor (HTTP ' + resp.status + ').', 'danger');
+        return;
+      }
+
+      const data = await resp.json();
+
+      // Si tu backend devuelve success=false en errores
+      if (data.success === false) {
+        mostrarAlerta(data.error || 'Error en la búsqueda.', 'danger');
+        return;
+      }
+
+      ocultarAlerta();
+      renderResultados(data);
+
+    } catch (err) {
+      console.error(err);
+      mostrarAlerta('Error de comunicación con el servidor.', 'danger');
+    }
+  });
+});
+</script>
+{% endblock %}
