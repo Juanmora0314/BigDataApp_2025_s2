@@ -16,6 +16,7 @@ from flask import (
 )
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+from elasticsearch import Elasticsearch
 
 import os
 from datetime import datetime
@@ -32,16 +33,35 @@ load_dotenv()
 app = Flask(
     __name__,
     static_folder="static",       # aquí vive tu CSS (static/css/...)
+    static_url_path="/static",    # URL pública para /static/...
     template_folder="templates",  # aquí viven tus .html
 )
 app.secret_key = os.getenv("SECRET_KEY", "clave_super_secreta_dev")
+
+# ==========================================
+#   CONFIGURACIÓN DE ELASTICSEARCH (buscador público)
+# ==========================================
+ELASTIC_URL = os.getenv("ELASTIC_URL", "http://localhost:9200")
+ELASTIC_USER = os.getenv("ELASTIC_USER")
+ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+ELASTIC_INDEX = os.getenv("ELASTIC_INDEX", "normas")
+
+if ELASTIC_USER and ELASTIC_PASSWORD:
+    es = Elasticsearch(
+        ELASTIC_URL,
+        basic_auth=(ELASTIC_USER, ELASTIC_PASSWORD),
+        verify_certs=False,  # pon True si tienes certificados OK
+    )
+else:
+    # Solo para clusters sin autenticación
+    es = Elasticsearch(ELASTIC_URL, verify_certs=False)
 
 # --- Mongo (gestión de usuarios) ---
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB", "minminas_app")
 MONGO_COLECCION_USUARIOS = os.getenv("MONGO_COLECCION", "usuarios")
 
-# --- Elasticsearch (normatividad MinMinas) ---
+# --- Elasticsearch (normatividad MinMinas – administración) ---
 ELASTIC_CLOUD_ID = os.getenv("ELASTIC_CLOUD_ID")
 ELASTIC_API_KEY = os.getenv("ELASTIC_API_KEY")
 ELASTIC_INDEX_MINMINAS = os.getenv("ELASTIC_INDEX_MINMINAS", "minminas-normatividad")
@@ -60,7 +80,7 @@ if not ELASTIC_CLOUD_ID or not ELASTIC_API_KEY:
     )
 
 # ------------------------------------------------------------
-# Inicializar clientes de Mongo y Elastic
+# Inicializar clientes de Mongo y Elastic (administración)
 # ------------------------------------------------------------
 mongo_users = MongoDBUsuarios(
     uri=MONGO_URI,
@@ -97,7 +117,7 @@ def build_permisos(user_doc: Dict[str, Any]) -> Dict[str, bool]:
     }
 
 
-def login_requerido():
+def login_requerido() -> bool:
     """Devuelve True si NO hay sesión activa (para usar en if rápidos)."""
     return not session.get("logged_in")
 
@@ -146,6 +166,10 @@ def about():
     )
 
 
+# ==========================================
+#   VISTAS DEL BUSCADOR PÚBLICO
+# ==========================================
+
 @app.route("/buscador")
 def buscador():
     """Página del buscador público sobre Elasticsearch."""
@@ -156,41 +180,46 @@ def buscador():
     )
 
 
-# ============================================================
-# BÚSQUEDA EN ELASTICSEARCH (MinMinas)
-# ============================================================
-
 @app.route("/buscar-elastic", methods=["POST"])
 def buscar_elastic():
     """
-    API para realizar búsqueda de texto en Elasticsearch sobre el índice
-    de normatividad de MinMinas.
+    API pública para realizar búsqueda de texto en Elasticsearch
+    sobre el índice configurado en ELASTIC_INDEX.
     Espera JSON: {"texto": "...", "size": 10 opcional}
     """
+    data = request.get_json(silent=True) or {}
+    texto = (data.get("texto") or "").strip()
+    size = int(data.get("size") or 20)
+
+    if not texto:
+        return jsonify({"success": False, "error": "Texto de búsqueda vacío."}), 400
+
     try:
-        data = request.get_json(silent=True) or {}
-        texto_buscar = (data.get("texto") or "").strip()
-        size = int(data.get("size", 20))
-
-        if not texto_buscar:
-            return (
-                jsonify(
-                    {"success": False, "error": "El texto de búsqueda es obligatorio"}
-                ),
-                400,
-            )
-
-        # Buscamos en los campos principales: texto completo + nombre de archivo
-        resultado = elastic.buscar_texto(
-            index=ELASTIC_INDEX_MINMINAS,
-            texto=texto_buscar,
-            campos=["texto", "nombre_archivo"],
+        # Búsqueda básica en Elasticsearch
+        resp = es.search(
+            index=ELASTIC_INDEX,
+            query={
+                "multi_match": {
+                    "query": texto,
+                    "fields": [
+                        "titulo",
+                        "texto",
+                        "resumen",
+                        "tipo_norma",
+                        "entidad",
+                        "numero_norma",
+                    ],
+                }
+            },
             size=size,
         )
 
-        return jsonify(resultado)
+        # Devolvemos la respuesta tal cual; el JS ya sabe leer hits / hits.total
+        return jsonify(resp)
 
     except Exception as e:
+        # Aquí es donde veías AuthenticationException(401, ...)
+        print("Error en búsqueda Elastic:", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -490,7 +519,9 @@ def ejecutar_query_elastic():
 
         if not query_json:
             return (
-                jsonify({"success": False, "error": "El JSON de comando es requerido"}),
+                jsonify(
+                    {"success": False, "error": "El JSON de comando es requerido"}
+                ),
                 400,
             )
 
@@ -570,7 +601,10 @@ def procesar_webscraping_elastic():
             scraper.close()
             return (
                 jsonify(
-                    {"success": False, "error": "Error al extraer enlaces desde la web"}
+                    {
+                        "success": False,
+                        "error": "Error al extraer enlaces desde la web",
+                    }
                 ),
                 500,
             )
@@ -670,7 +704,10 @@ def cargar_documentos_elastic():
         if not archivos:
             return (
                 jsonify(
-                    {"success": False, "error": "No se enviaron archivos a procesar"}
+                    {
+                        "success": False,
+                        "error": "No se enviaron archivos para procesar",
+                    }
                 ),
                 400,
             )
