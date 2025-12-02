@@ -1,7 +1,7 @@
-from .mongoDB import MongoDB
+from .mongoDB import MongoDBUsuarios
 from .funciones import Funciones
-from .elastic import ElasticSearch
+from .elasticpy import ElasticSearch
 from .webScraping import WebScraping
 from .PLN import PLN
 
-__all__ = ["MongoDB", "Funciones", "ElasticSearch", "WebScraping", "PLN"]
+__all__ = ["MongoDBUsuarios", "Funciones", "ElasticSearch", "WebScraping", "PLN"]
