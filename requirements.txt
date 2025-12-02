@@ -19,4 +19,5 @@ pytesseract
 pdf2image
 Pillow
 werkzeug
-passlib
+passlib[bcrypt]==1.7.4
+
