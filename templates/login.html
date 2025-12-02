@@ -1,247 +1,198 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar sesión · Buscador Normativo MinMinas</title>
+{% extends "base.html" %}
 
-    <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-        crossorigin="anonymous"
-    />
+{% block title %}Iniciar sesión · Buscador Normativo MinMinas{% endblock %}
 
-    <!-- Estilos generales del proyecto (mismo que landing) -->
-    <link href="{{ url_for('static', filename='css/landingPage.css') }}" rel="stylesheet">
-</head>
-<body>
-    <!-- Header común -->
-    <header class="header">
-        <div class="container header-inner">
-            <div class="header-brand">
-                <div class="header-logo rounded-circle d-flex align-items-center justify-content-center">
-                    <span class="logo-initials">BD</span>
-                </div>
-                <div>
-                    <div class="header-title">Buscador Normativo MinMinas</div>
-                    <div class="header-subtitle">Proyecto Big Data · 2025-S2</div>
-                </div>
-            </div>
+{% block extra_css %}
+  <!-- Bootstrap -->
+  <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+  />
+  <!-- Estilos del gestor (login, admin, tablas…) -->
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/gestor.css') }}">
+{% endblock %}
 
-            <nav class="header-nav">
-                <ul class="nav align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('landing') }}">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('buscador') }}">Buscador</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">Acerca de</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-sm btn-light ms-2" href="{{ url_for('login') }}">Ingresar</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+{% block content %}
+  <main class="container landing-main">
+      <div class="row justify-content-center">
+          <div class="col-md-7 col-lg-5">
+              <section class="hero-card">
+                  <h1 class="hero-title text-center mb-2">Iniciar sesión</h1>
+                  <p class="hero-subtitle text-center mb-4">
+                      Accede al panel de administración y al buscador avanzado
+                      de normatividad del Ministerio de Minas y Energía.
+                  </p>
 
-    <!-- Contenido principal -->
-    <main class="container landing-main">
-        <div class="row justify-content-center">
-            <div class="col-md-7 col-lg-5">
-                <section class="hero-card">
-                    <h1 class="hero-title text-center mb-2">Iniciar sesión</h1>
-                    <p class="hero-subtitle text-center mb-4">
-                        Accede al panel de administración y al buscador avanzado
-                        de normatividad del Ministerio de Minas y Energía.
-                    </p>
+                  {% if error_message %}
+                  <div class="alert alert-danger" role="alert">
+                      {{ error_message }}
+                  </div>
+                  {% endif %}
 
-                    {% if error_message %}
-                    <div class="alert alert-danger" role="alert">
-                        {{ error_message }}
-                    </div>
-                    {% endif %}
+                  <form method="POST"
+                        action="{{ url_for('login') }}"
+                        id="loginForm"
+                        onsubmit="mostrarCargando()">
+                      <div class="mb-3">
+                          <label for="usuario" class="form-label">Usuario o correo</label>
+                          <input
+                              type="text"
+                              class="form-control"
+                              id="usuario"
+                              name="usuario"
+                              placeholder="juan.mora / juan@example.com"
+                              required
+                              autofocus
+                          >
+                      </div>
 
-                    <form method="POST"
-                          action="{{ url_for('login') }}"
-                          id="loginForm"
-                          onsubmit="mostrarCargando()">
-                        <div class="mb-3">
-                            <label for="usuario" class="form-label">Usuario o correo</label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="usuario"
-                                name="usuario"
-                                placeholder="juan.mora / juan@example.com"
-                                required
-                                autofocus
-                            >
-                        </div>
+                      <div class="mb-2">
+                          <label for="password" class="form-label">Contraseña</label>
+                          <input
+                              type="password"
+                              class="form-control"
+                              id="password"
+                              name="password"
+                              placeholder="••••••••"
+                              required
+                          >
+                      </div>
 
-                        <div class="mb-2">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input
-                                type="password"
-                                class="form-control"
-                                id="password"
-                                name="password"
-                                placeholder="••••••••"
-                                required
-                            >
-                        </div>
+                      <div class="d-flex justify-content-between align-items-center mb-4">
+                          <small class="text-muted">
+                              Tus credenciales se procesan de forma segura.
+                          </small>
+                      </div>
 
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <small class="text-muted">
-                                Tus credenciales se procesan de forma segura.
-                            </small>
-                        </div>
+                      <div class="d-grid gap-2">
+                          <button type="submit" class="btn btn-primary">
+                              Ingresar
+                          </button>
+                          <button type="button"
+                                  class="btn btn-outline-secondary"
+                                  onclick="listarUsuarios()">
+                              Ver usuarios registrados
+                          </button>
+                      </div>
+                  </form>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                Ingresar
-                            </button>
-                            <button type="button"
-                                    class="btn btn-outline-secondary"
-                                    onclick="listarUsuarios()">
-                                Ver usuarios registrados
-                            </button>
-                        </div>
-                    </form>
+                  <!-- Spinner de carga -->
+                  <div id="div_cargando" class="text-center mt-4 d-none">
+                      <div class="spinner-border text-primary" role="status">
+                          <span class="visually-hidden">Cargando...</span>
+                      </div>
+                      <p class="mt-2 mb-0">
+                          Procesando la solicitud… esto puede tardar algunos segundos.
+                      </p>
+                  </div>
+              </section>
+          </div>
+      </div>
 
-                    <!-- Spinner de carga -->
-                    <div id="div_cargando" class="text-center mt-4 d-none">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
-                        <p class="mt-2 mb-0">
-                            Procesando la solicitud… esto puede tardar algunos segundos.
-                        </p>
-                    </div>
-                </section>
-            </div>
-        </div>
+      <!-- Listado de usuarios (vista administrativa simple) -->
+      <section id="ListadoUsuarios" class="mt-5 d-none">
+          <h2 class="h5 text-center mb-3">Usuarios registrados</h2>
+          <div class="table-responsive hero-card p-0">
+              <table class="table mb-0 align-middle">
+                  <thead class="table-light">
+                      <tr>
+                          <th>Usuario</th>
+                          <th>Correo</th>
+                          <th>Rol</th>
+                          <th>Activo</th>
+                          <th>Último acceso</th>
+                      </tr>
+                  </thead>
+                  <tbody id="tablaUsuarios">
+                  </tbody>
+              </table>
+          </div>
+          <p class="mt-2 text-muted small text-center">
+              * Esta tabla es solo informativa para el administrador.
+          </p>
+      </section>
+  </main>
+{% endblock %}
 
-        <!-- Listado de usuarios (vista administrativa simple) -->
-        <section id="ListadoUsuarios" class="mt-5 d-none">
-            <h2 class="h5 text-center mb-3">Usuarios registrados</h2>
-            <div class="table-responsive hero-card p-0">
-                <table class="table mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Usuario</th>
-                            <th>Correo</th>
-                            <th>Rol</th>
-                            <th>Activo</th>
-                            <th>Último acceso</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaUsuarios">
-                    </tbody>
-                </table>
-            </div>
-            <p class="mt-2 text-muted small text-center">
-                * Esta tabla es solo informativa para el administrador.
-            </p>
-        </section>
-    </main>
+{% block extra_js %}
+  <!-- JS Bootstrap -->
+  <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous">
+  </script>
 
-    <!-- Footer común -->
-    <footer class="landing-footer text-center">
-        <div class="container">
-            <p class="mb-1">Creado por {{ creador }}</p>
-            <p class="mb-1">
-                <span id="current-year"></span> ·
-                <span id="version_app">{{ version }}</span>
-            </p>
-            <p class="mb-0 small text-muted">
-                Proyecto académico · Maestría en Analítica de Datos · Universidad Central
-            </p>
-        </div>
-    </footer>
+  <!-- JS específico de la página de login -->
+  <script>
+      function mostrarCargando() {
+          const loader = document.getElementById('div_cargando');
+          const submitBtn = document.querySelector('#loginForm button[type="submit"]');
 
-    <!-- JS Bootstrap -->
-    <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous">
-    </script>
+          if (loader) {
+              loader.classList.remove('d-none');
+          }
+          if (submitBtn) {
+              submitBtn.disabled = true;
+          }
+      }
 
-    <!-- JS global del proyecto (auto-ocultar alerts, año actual, etc.) -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+      function listarUsuarios() {
+          const loader = document.getElementById('div_cargando');
+          const contenedor = document.getElementById('ListadoUsuarios');
+          const tablaUsuarios = document.getElementById('tablaUsuarios');
 
-    <!-- JS específico de la página de login -->
-    <script>
-        function mostrarCargando() {
-            const loader = document.getElementById('div_cargando');
-            const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+          if (loader) loader.classList.remove('d-none');
 
-            if (loader) {
-                loader.classList.remove('d-none');
-            }
-            if (submitBtn) {
-                submitBtn.disabled = true;
-            }
-        }
+          // Llamamos directamente a la ruta que expone el JSON de usuarios
+          fetch('/listar-usuarios')
+              .then(response => {
+                  if (!response.ok) throw new Error('Respuesta no válida del servidor');
+                  return response.json();
+              })
+              .then(data => {
+                  tablaUsuarios.innerHTML = '';
 
-        function listarUsuarios() {
-            const loader = document.getElementById('div_cargando');
-            const contenedor = document.getElementById('ListadoUsuarios');
-            const tablaUsuarios = document.getElementById('tablaUsuarios');
+                  if (!Array.isArray(data) || data.length === 0) {
+                      const row = document.createElement('tr');
+                      row.innerHTML = '<td colspan="5" class="text-center text-muted">No hay usuarios registrados</td>';
+                      tablaUsuarios.appendChild(row);
+                  } else {
+                      data.forEach(usuario => {
+                          const row = document.createElement('tr');
 
-            if (loader) loader.classList.remove('d-none');
+                          const activo = usuario.activo === true || usuario.activo === 'true';
+                          const rol = usuario.rol || '—';
 
-            fetch('{{ url_for("listar_usuarios_api") }}')  // ajusta al nombre real de tu endpoint
-                .then(response => {
-                    if (!response.ok) throw new Error('Respuesta no válida del servidor');
-                    return response.json();
-                })
-                .then(data => {
-                    tablaUsuarios.innerHTML = '';
+                          row.innerHTML = `
+                              <td>${usuario.username || ''}</td>
+                              <td>${usuario.email || ''}</td>
+                              <td>
+                                  <span class="badge bg-outline">
+                                      ${rol}
+                                  </span>
+                              </td>
+                              <td>
+                                  <span class="badge ${activo ? 'bg-success' : 'bg-secondary'}">
+                                      ${activo ? 'Sí' : 'No'}
+                                  </span>
+                              </td>
+                              <td>${usuario.ultimo_login || '—'}</td>
+                          `;
+                          tablaUsuarios.appendChild(row);
+                      });
+                  }
 
-                    if (!Array.isArray(data) || data.length === 0) {
-                        const row = document.createElement('tr');
-                        row.innerHTML = '<td colspan="5" class="text-center text-muted">No hay usuarios registrados</td>';
-                        tablaUsuarios.appendChild(row);
-                    } else {
-                        data.forEach(usuario => {
-                            const row = document.createElement('tr');
-
-                            const activo = usuario.activo === true || usuario.activo === 'true';
-                            const rol = usuario.rol || '—';
-
-                            row.innerHTML = `
-                                <td>${usuario.username || ''}</td>
-                                <td>${usuario.email || ''}</td>
-                                <td>
-                                    <span class="badge bg-outline">
-                                        ${rol}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge ${activo ? 'bg-success' : 'bg-secondary'}">
-                                        ${activo ? 'Sí' : 'No'}
-                                    </span>
-                                </td>
-                                <td>${usuario.ultimo_login || '—'}</td>
-                            `;
-                            tablaUsuarios.appendChild(row);
-                        });
-                    }
-
-                    if (loader) loader.classList.add('d-none');
-                    if (contenedor) contenedor.classList.remove('d-none');
-                })
-                .catch(error => {
-                    console.error('Error al obtener usuarios:', error);
-                    alert('Error al obtener la lista de usuarios.');
-                    if (loader) loader.classList.add('d-none');
-                });
-        }
-    </script>
-</body>
-</html>
+                  if (loader) loader.classList.add('d-none');
+                  if (contenedor) contenedor.classList.remove('d-none');
+              })
+              .catch(error => {
+                  console.error('Error al obtener usuarios:', error);
+                  alert('Error al obtener la lista de usuarios.');
+                  if (loader) loader.classList.add('d-none');
+              });
+      }
+  </script>
+{% endblock %}

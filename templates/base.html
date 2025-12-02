@@ -1,4 +1,42 @@
-{% block title %}Proyecto BigData{% endblock %}
-{% block extra_css %}{% endblock %}
-{% block content %}{% endblock %}
-{% block extra_js %}{% endblock %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Buscador de Normatividad MinMinas{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS principal con fondo y estilos generales -->
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/landingPage.css') }}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- Barra superior -->
+  <nav class="navbar-minminas">
+    <div class="navbar-inner">
+      <div class="brand">BigData-MiProyecto</div>
+      <div class="nav-links">
+        <a href="{{ url_for('landing') }}">Inicio</a>
+        <a href="{{ url_for('buscador') }}">Buscador</a>
+        <a href="{{ url_for('about') }}">Acerca de</a>
+        <a href="{{ url_for('login') }}">Ingresar</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenido principal -->
+  <main class="hero-wrapper">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Pie de página -->
+  <footer class="hero-footer">
+    Proyecto Big Data · 2025-S2 · Juan Sebastián Mora Zapata
+  </footer>
+
+  <!-- JS global -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

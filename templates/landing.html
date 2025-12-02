@@ -1,163 +1,64 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "base.html" %}
 
-    <title>Buscador Normatividad MinMinas JSMZ · Big Data 2025-S2</title>
+{% block title %}Buscador de Normatividad MinMinas{% endblock %}
 
-    <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-        crossorigin="anonymous"
-    />
+{% block content %}
+<section class="hero-card">
+  <!-- Columna izquierda -->
+  <div class="hero-main">
+    <div class="hero-eyebrow">Proyecto Big Data · 2025-S2</div>
 
-    <!-- Estilos propios -->
-    <link
-        href="{{ url_for('static', filename='css/landingPage.css') }}"
-        rel="stylesheet"
-    />
-</head>
+    <h1 class="hero-title">
+      Explorador inteligente de normatividad del Ministerio de Minas y Energía
+    </h1>
 
-<body>
-    <!-- HEADER / NAV -->
-    <header class="header">
-        <div class="container header-inner">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="header-badge">Proyecto Big Data · 2025-S2</span>
-                    <h1 class="h4 mb-0">Buscador de Normatividad MinMinas</h1>
-                </div>
+    <p class="hero-subtitle">
+      Buscador de Normatividad MinMinas · Maestría en Analítica de Datos · Universidad Central
+    </p>
 
-                <nav aria-label="Navegación principal">
-                    <ul class="nav align-items-center gap-1">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('buscador') }}">
-                                Buscador
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('about') }}">
-                                Acerca de
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">
-                                Ingresar
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    </header>
+    <p class="hero-description">
+      Aplicación académica que combina web scraping, procesamiento de documentos PDF
+      y búsqueda avanzada con ElasticSearch para consultar normas y resoluciones del
+      Ministerio de Minas y Energía. Incluye un panel de administración para gestionar
+      usuarios, índices de ElasticSearch y cargas de documentos.
+    </p>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="container landing-main">
-        <section class="hero">
-            <div class="row align-items-center g-4">
-                <!-- Columna texto principal -->
-                <div class="col-md-7">
-                    <p class="hero-kicker mb-2">
-                        Maestría en Analítica de Datos · Universidad Central
-                    </p>
+    <div class="hero-actions">
+      <a href="{{ url_for('buscador') }}" class="btn-primary-min">
+        Ir al buscador
+      </a>
 
-                    <h2 class="hero-title">
-                        Explorador inteligente de
-                        <span class="hero-highlight">normatividad del Ministerio de Minas y Energía</span>
-                    </h2>
+      <a href="{{ url_for('about') }}" class="btn-ghost">
+        Ver documentación del proyecto
+      </a>
+    </div>
 
-                    <p class="hero-subtitle">
-                        Aplicación académica que combina web scraping, procesamiento
-                        de documentos PDF y búsqueda avanzada con ElasticSearch
-                        para consultar normas y resoluciones de MinMinas.
-                    </p>
+    <p style="margin-top: 2rem; font-size: 0.9rem; color:#64748b;">
+      Autor: Juan Sebastián Mora Zapata · Proyecto: Big Data 2025-S2 ·
+      Buscador de Normatividad MinMinas
+    </p>
+  </div>
 
-                    <div class="hero-actions">
-                        <a
-                            href="{{ url_for('buscador') }}"
-                            class="btn btn-primary btn-lg"
-                        >
-                            Ir al buscador
-                        </a>
+  <!-- Columna derecha -->
+  <aside class="hero-side-card">
+    <div class="hero-side-card-title">Resumen del proyecto</div>
 
-                        <a
-                            href="{{ url_for('about') }}"
-                            class="btn btn-secondary"
-                        >
-                            Ver documentación del proyecto
-                        </a>
-                    </div>
+    <div class="hero-badge-row">
+      <span class="badge-demo">Demo académica</span>
+      <span class="badge-version">Versión 1.0</span>
+    </div>
 
-                    <ul class="hero-meta list-unstyled mt-4 mb-0 small text-muted">
-                        <li>
-                            <strong>Autor:</strong> Juan Sebastián Mora Zapata
-                        </li>
-                        <li>
-                            <strong>Proyecto:</strong> Big Data 2025-S2 · Buscador de Normatividad MinMinas
-                        </li>
-                    </ul>
-                </div>
+    <ul>
+      <li>Rastrea el repositorio normativo del Ministerio de Minas y Energía.</li>
+      <li>Extrae y procesa texto desde documentos PDF (incluye OCR cuando es necesario).</li>
+      <li>Indexa los textos en ElasticSearch para búsquedas rápidas y flexibles.</li>
+      <li>Incluye gestión de usuarios y un panel para monitorear índices e ingestiones.</li>
+    </ul>
 
-                <!-- Columna tarjetica lateral -->
-                <div class="col-md-5">
-                    <div class="hero-card">
-                        <p class="hero-card-label mb-1">Resumen del proyecto</p>
-                        <h3 class="hero-card-title h5">
-                            ¿Qué hace esta aplicación?
-                        </h3>
-
-                        <ul class="hero-card-list">
-                            <li>Rastrea el repositorio normativo de MinMinas.</li>
-                            <li>
-                                Extrae y procesa texto desde documentos PDF
-                                (pdfminer + OCR).
-                            </li>
-                            <li>
-                                Indexa los textos en ElasticSearch para
-                                búsquedas rápidas.
-                            </li>
-                            <li>
-                                Incluye gestión de usuarios y un panel de
-                                búsqueda web.
-                            </li>
-                        </ul>
-
-                        <div class="hero-card-footer mt-3">
-                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
-                                Demo académica
-                            </span>
-                            <span class="badge rounded-pill bg-light text-muted ms-2">
-                                Versión {{ version }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="landing-footer">
-        <div class="container text-center small">
-            <p class="mb-1">
-                Creado por <strong>{{ creador }}</strong>
-            </p>
-            <p class="mb-0">
-                <span id="current-year"></span> ·
-                Aplicación de Big Data para la Maestría en Analítica de Datos
-            </p>
-        </div>
-    </footer>
-
-    <!-- JS Bootstrap + JS propio -->
-    <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous"
-    ></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
-</html>
+    <p style="font-size: 0.85rem; color:#94a3b8; margin-top:1rem;">
+      Proyecto desarrollado como parte de la aplicación de Big Data para la Maestría
+      en Analítica de Datos.
+    </p>
+  </aside>
+</section>
+{% endblock %}
