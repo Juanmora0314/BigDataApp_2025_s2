@@ -1,89 +1,68 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Acerca de · MinMinas BigData</title>
+{% extends "base.html" %}
 
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='css/landingPage.css') }}"
-  />
-</head>
-<body class="d-flex flex-column min-vh-100">
+{% block title %}Acerca de · MinMinas Big Data{% endblock %}
 
-  <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-    <div class="container">
-      <a class="navbar-brand" href="{{ url_for('index') }}">MinMinas · BigData</a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#mainNav"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="mainNav">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('buscador') }}">Buscador</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('about') }}">Acerca de</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('login') }}">Ingresar</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+{% block content %}
+<main class="container py-5">
 
-  <main class="flex-grow-1">
-    <section class="py-5">
-      <div class="container">
-        <div class="row g-4 align-items-center">
-          <div class="col-md-4 text-center">
-            <img
-              src="{{ url_for('static', filename='images/creador.png') }}"
-              alt="Juan Sebastián Mora Zapata"
-              class="creador-foto"
-            />
-          </div>
-          <div class="col-md-8">
-            <h2 class="mb-3">Acerca del creador</h2>
-            <p class="mb-2">
-              <strong>Juan Sebastián Mora Zapata</strong>, estudiante de
-              Maestría en Analítica de Datos y profesional en transformación
-              digital, desarrolla esta solución como proyecto de Big Data
-              aplicada a la normatividad de MinMinas.
-            </p>
-            <p class="mb-2">
-              La aplicación integra <strong>MongoDB Atlas</strong> para la
-              gestión de documentos normativos, <strong>Elasticsearch</strong>
-              para el buscador y <strong>Flask</strong> como framework web.
-            </p>
-            <p class="mb-0">
-              El objetivo: facilitar la consulta de normatividad y sentar las
-              bases para analítica avanzada sobre el marco regulatorio del
-              sector minero-energético.
-            </p>
-          </div>
+  <header class="mb-4 text-center">
+    <p class="text-muted mb-1">MinMinas · Plataforma Big Data</p>
+    <h1 class="display-5 fw-semibold mb-3">¿De qué trata este proyecto?</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 720px;">
+      Esta aplicación web integra <strong>MongoDB</strong> y <strong>Elasticsearch</strong>
+      para apoyar la gestión de información del <strong>Ministerio de Minas y Energía</strong>.
+    </p>
+  </header>
+
+  <section class="row g-3 justify-content-center mb-5">
+    <div class="col-md-8 col-lg-7">
+      <div class="list-group shadow-sm">
+        <div class="list-group-item">
+          Registrar y gestionar usuarios de la plataforma (<strong>MongoDB</strong>).
+        </div>
+        <div class="list-group-item">
+          Indexar y consultar normas, resoluciones y otros documentos técnicos del sector
+          minero–energético (<strong>Elasticsearch</strong>).
+        </div>
+        <div class="list-group-item">
+          Realizar búsquedas avanzadas por palabras clave, filtros y metadatos,
+          facilitando la trazabilidad de la normatividad.
+        </div>
+        <div class="list-group-item">
+          Servir como prototipo académico de un sistema de apoyo a la gestión documental
+          y analítica de datos.
         </div>
       </div>
-    </section>
-  </main>
 
-  <footer class="footer text-center mt-auto">
-    <div class="container">
-      <span>Proyecto BigData 2025 · MinMinas · DIAN</span>
+      <p class="text-center text-muted small mt-3">
+        Nota: Este es un proyecto académico y no representa una plataforma oficial
+        del Ministerio de Minas y Energía.
+      </p>
     </div>
-  </footer>
+  </section>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+  <!-- Tarjeta del creador -->
+  <section class="d-flex justify-content-center">
+    <article class="card shadow-sm border-0" style="max-width: 420px;">
+      <img src="{{ url_for('static', filename='images/creador.png') }}"
+           alt="Juan Sebastián Mora Zapata"
+           class="card-img-top creator-photo">
+      <div class="card-body text-center">
+        <h2 class="h5 mb-1">Juan Sebastián Mora Zapata</h2>
+        <p class="mb-1">Estudiante de Maestría en Analítica de Datos</p>
+        <p class="text-muted mb-3">Universidad Central</p>
+
+        <div class="d-flex justify-content-center gap-2">
+          <a href="https://github.com/Juanmora0314" target="_blank"
+             class="btn btn-sm btn-dark">GitHub</a>
+          <a href="https://www.linkedin.com" target="_blank"
+             class="btn btn-sm btn-primary">LinkedIn</a>
+          <a href="https://twitter.com" target="_blank"
+             class="btn btn-sm btn-info">X / Twitter</a>
+        </div>
+      </div>
+    </article>
+  </section>
+
+</main>
+{% endblock %}
