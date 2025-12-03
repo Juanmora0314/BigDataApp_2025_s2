@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios · MinMinas{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Usuarios registrados</h1>
+
+{% if usuarios %}
+  <div class="table-responsive shadow-sm bg-white rounded">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Usuario</th>
+          <th>Correo</th>
+          <th>Rol</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.rol or 'usuario' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    No hay usuarios registrados en la base de datos.
+  </div>
+{% endif %}
+{% endblock %}

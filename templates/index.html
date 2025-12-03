@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio · MinMinas · Plataforma Big Data{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-6">
+      <h1 class="display-5 fw-bold mb-3">
+        Normatividad y documentos técnicos, en un solo lugar.
+      </h1>
+      <p class="lead text-muted mb-4">
+        Explora la normativa y los documentos técnicos relevantes para el
+        Ministerio de Minas y Energía con un buscador potenciado por Big Data.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('buscador') }}" class="btn btn-primary btn-lg">
+          Ir al buscador
+        </a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg">
+          Panel de administración
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Ejemplos de consultas</h5>
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li>• “transición energética justa”</li>
+            <li>• “licencias de exploración minera”</li>
+            <li>• “seguridad industrial en minas”</li>
+            <li>• “política de hidrocarburos 2025”</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

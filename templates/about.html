@@ -1,59 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}MinMinas · Plataforma Big Data · Acerca de{% endblock %}
+{% block title %}Acerca de · MinMinas{% endblock %}
 
 {% block content %}
-<section class="mb-5">
-  <h1 class="text-center mb-3">MinMinas · Plataforma Big Data</h1>
-  <h2 class="text-center h4 mb-4">¿De qué trata este proyecto?</h2>
-
-  <p class="text-center mb-4">
-    Esta aplicación web integra <strong>MongoDB</strong> y <strong>Elasticsearch</strong>
-    para apoyar la gestión de información del <strong>Ministerio de Minas y Energía</strong>.
-    Permite:
-  </p>
-
-  <div class="mx-auto" style="max-width: 900px;">
-    <div class="list-group mb-3">
-      <div class="list-group-item">
-        Registrar y gestionar usuarios de la plataforma (MongoDB).
-      </div>
-      <div class="list-group-item">
-        Indexar y consultar normas, resoluciones y otros documentos técnicos del sector
-        minero–energético (Elasticsearch).
-      </div>
-      <div class="list-group-item">
-        Realizar búsquedas avanzadas por palabras clave, filtros y metadatos,
-        facilitando la trazabilidad de la normatividad.
-      </div>
-      <div class="list-group-item">
-        Servir como prototipo académico de un sistema de apoyo a la gestión documental
-        y analítica de datos.
-      </div>
-    </div>
-
-    <p class="text-center text-muted small">
-      Nota: Este es un proyecto académico y no representa una plataforma oficial del
-      Ministerio de Minas y Energía.
-    </p>
-  </div>
-</section>
-
-<section class="text-center">
-  <div class="mb-4">
-    <img src="{{ url_for('static', filename='Images/creador.png') }}"
-         alt="Foto del autor"
-         class="img-fluid rounded shadow"
-         style="max-width: 260px;">
-  </div>
-  <p class="mb-1 fw-semibold">Juan Sebastián Mora Zapata</p>
-  <p class="mb-1">Estudiante de Maestría en Analítica de Datos</p>
-  <p class="mb-3">Universidad Central</p>
-
-  <div class="d-flex justify-content-center gap-2 mb-4">
-    <a href="https://github.com/Juanmora0314" class="btn btn-sm btn-dark" target="_blank">GitHub</a>
-    <a href="https://www.linkedin.com" class="btn btn-sm btn-primary" target="_blank">LinkedIn</a>
-    <a href="https://twitter.com" class="btn btn-sm btn-info" target="_blank">X / Twitter</a>
-  </div>
-</section>
+<h1 class="h3 mb-3">Acerca de la plataforma</h1>
+<p class="text-muted">
+  Esta aplicación es un prototipo académico del proyecto Big Data, orientado a
+  explorar indexación de documentos, búsqueda semántica y visualización de
+  normatividad para el Ministerio de Minas y Energía.
+</p>
 {% endblock %}

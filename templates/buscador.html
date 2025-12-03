@@ -1,264 +1,71 @@
 {% extends "base.html" %}
 
-{% block title %}MinMinas · Buscador de Normatividad{% endblock %}
+{% block title %}Buscador · MinMinas{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <section class="mb-5">
-    <h1 class="text-center mb-3">Buscador de normas y documentos</h1>
-    <p class="text-center text-muted mb-4">
-      Consulta la normatividad y documentos técnicos indexados en Elasticsearch
-      para el Ministerio de Minas y Energía.
+<div class="py-4">
+  <h1 class="display-6 fw-semibold text-center mb-2">
+    Buscador de normas y documentos
+  </h1>
+  <p class="text-center text-muted mb-4">
+    Consulta la normatividad y documentos técnicos indexados en Elasticsearch
+    para el Ministerio de Minas y Energía.
+  </p>
+
+  <!-- Formulario de búsqueda (sin JavaScript, todo por servidor) -->
+  <form method="get" action="{{ url_for('buscador') }}" class="row justify-content-center mb-4">
+    <div class="col-12 col-md-8 col-lg-6">
+      <div class="input-group input-group-lg shadow-sm">
+        <input
+          type="text"
+          name="q"
+          class="form-control"
+          placeholder="Ej: minería, transición energética, resolución 123..."
+          value="{{ q or '' }}"
+          required
+        >
+        <button class="btn btn-primary" type="submit">Buscar</button>
+      </div>
+    </div>
+  </form>
+
+  {% if error %}
+    <div class="alert alert-danger text-center">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  {% if q and not error and total == 0 %}
+    <div class="alert alert-warning text-center">
+      No se encontraron resultados para <strong>{{ q }}</strong>.
+    </div>
+  {% endif %}
+
+  {% if results %}
+    <p class="text-muted mb-2">
+      {{ total }} resultado{{ 's' if total != 1 else '' }} encontrado{{ 's' if total != 1 else '' }}.
     </p>
 
-    <!-- Formulario de búsqueda -->
-    <form id="form-busqueda" class="mx-auto mb-4" style="max-width: 980px;">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <label class="form-label" for="texto_busqueda">Texto a buscar</label>
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              id="texto_busqueda"
-              name="texto_busqueda"
-              placeholder="Ej: 'reglamentación de exploración', número de resolución, palabra clave, etc."
-              required
-            >
-            <button type="submit" class="btn btn-primary">
-              Buscar
-            </button>
+    <div class="list-group shadow-sm">
+      {% for doc in results %}
+        <a href="{{ doc.enlace or '#' }}"
+           target="_blank"
+           class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ doc.titulo or 'Documento sin título' }}</h5>
+            {% if doc.fecha %}
+              <small class="text-muted">{{ doc.fecha }}</small>
+            {% endif %}
           </div>
-        </div>
-      </div>
-    </form>
-
-    <!-- Mensajes de estado -->
-    <div id="alerta-busqueda"
-         class="alert d-none mx-auto"
-         style="max-width: 980px;"></div>
-
-    <!-- Resultados -->
-    <section id="resultados-section"
-             class="mx-auto d-none"
-             style="max-width: 980px;">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h2 class="h5 mb-0">Resultados</h2>
-        <small class="text-muted">
-          Total encontrados: <span id="total-resultados">0</span>
-        </small>
-      </div>
-      <div id="resultados-container" class="list-group"></div>
-    </section>
-  </section>
+          {% if doc.resumen %}
+            <p class="mb-1 text-muted small">{{ doc.resumen }}</p>
+          {% endif %}
+          {% if doc.entidad %}
+            <small class="badge text-bg-light">{{ doc.entidad }}</small>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('form-busqueda');
-  const input = document.getElementById('texto_busqueda');
-  const alerta = document.getElementById('alerta-busqueda');
-  const resultadosSection = document.getElementById('resultados-section');
-  const resultadosContainer = document.getElementById('resultados-container');
-  const totalResultadosSpan = document.getElementById('total-resultados');
-
-  function mostrarAlerta(mensaje, tipo = 'info') {
-    alerta.textContent = mensaje;
-    alerta.className = 'alert alert-' + tipo + ' mx-auto';
-    alerta.style.maxWidth = '980px';
-  }
-
-  function ocultarAlerta() {
-    alerta.textContent = '';
-    alerta.className = 'alert d-none mx-auto';
-  }
-
-  function limpiarResultados() {
-    resultadosContainer.innerHTML = '';
-    resultadosSection.classList.add('d-none');
-    totalResultadosSpan.textContent = '0';
-  }
-
-  // Adaptar varios formatos de respuesta de Elasticsearch
-  function extraerHits(data) {
-    if (Array.isArray(data.hits)) {
-      return data.hits;
-    }
-    if (data.hits && Array.isArray(data.hits.hits)) {
-      return data.hits.hits;
-    }
-    if (Array.isArray(data.resultados)) {
-      return data.resultados;
-    }
-    return [];
-  }
-
-  function extraerTotal(data, hits) {
-    if (typeof data.total === 'number') {
-      return data.total;
-    }
-    if (data.hits && typeof data.hits.total === 'number') {
-      return data.hits.total;
-    }
-    if (data.hits && data.hits.total && typeof data.hits.total.value === 'number') {
-      return data.hits.total.value;
-    }
-    return hits.length;
-  }
-
-  function renderResultados(data) {
-    const hits = extraerHits(data);
-    const total = extraerTotal(data, hits);
-
-    resultadosContainer.innerHTML = '';
-    totalResultadosSpan.textContent = total.toString();
-
-    if (!hits.length) {
-      resultadosContainer.innerHTML =
-        '<div class="list-group-item text-center text-muted">No se encontraron resultados.</div>';
-      resultadosSection.classList.remove('d-none');
-      return;
-    }
-
-    hits.forEach((hit, index) => {
-      const source = hit._source || hit.source || hit;
-
-      const anio =
-        source.anio ||
-        source.año ||
-        source.anio_publicacion ||
-        source.fecha ||
-        '';
-
-      const tipo =
-        source.tipo_norma ||
-        source.tipo_documento ||
-        source.tipo ||
-        '';
-
-      const entidad =
-        source.entidad ||
-        source.emisor ||
-        source.organismo ||
-        '';
-
-      const titulo =
-        source.titulo ||
-        source.nombre_archivo ||
-        'Documento sin título';
-
-      const textoLargo =
-        source.resumen ||
-        source.extracto ||
-        source.texto ||
-        source.contenido ||
-        '';
-
-      let snippet = textoLargo || titulo;
-      if (snippet.length > 260) {
-        snippet = snippet.slice(0, 260) + '…';
-      }
-
-      const score = (typeof hit._score === 'number')
-        ? hit._score.toFixed(4)
-        : null;
-
-      const item = document.createElement('div');
-      item.className = 'list-group-item list-group-item-action flex-column align-items-start';
-
-      item.innerHTML = `
-        <div class="d-flex w-100 justify-content-between">
-          <div>
-            <h5 class="mb-1">${titulo}</h5>
-            <div class="small text-muted">
-              ${anio ? `<span class="me-2"><strong>Año:</strong> ${anio}</span>` : ''}
-              ${tipo ? `<span class="me-2"><strong>Tipo:</strong> ${tipo}</span>` : ''}
-              ${entidad ? `<span class="me-2"><strong>Entidad:</strong> ${entidad}</span>` : ''}
-            </div>
-          </div>
-          <div class="text-end">
-            ${score !== null ? `<span class="badge bg-secondary">score ${score}</span>` : ''}
-            <div class="small text-muted">#${index + 1}</div>
-          </div>
-        </div>
-        <p class="mb-1 mt-2">${snippet}</p>
-        <button type="button" class="btn btn-sm btn-outline-secondary mt-2 btn-detalle">
-          Ver detalle
-        </button>
-        <div class="mt-2 d-none detalle-json">
-          <pre class="bg-light border rounded p-2 small mb-0" style="max-height: 300px; overflow-y: auto;">
-${JSON.stringify(source, null, 2)}
-          </pre>
-        </div>
-      `;
-
-      const btnDetalle = item.querySelector('.btn-detalle');
-      const detalleDiv = item.querySelector('.detalle-json');
-
-      btnDetalle.addEventListener('click', () => {
-        const oculto = detalleDiv.classList.contains('d-none');
-        if (oculto) {
-          detalleDiv.classList.remove('d-none');
-          btnDetalle.textContent = 'Ocultar detalle';
-        } else {
-          detalleDiv.classList.add('d-none');
-          btnDetalle.textContent = 'Ver detalle';
-        }
-      });
-
-      resultadosContainer.appendChild(item);
-    });
-
-    resultadosSection.classList.remove('d-none');
-  }
-
-  // Submit del formulario
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const texto = (input.value || '').trim();
-
-    if (!texto) {
-      mostrarAlerta('Por favor ingresa un texto para buscar.', 'warning');
-      return;
-    }
-
-    limpiarResultados();
-    mostrarAlerta('Buscando documentos... por favor espera.', 'info');
-
-    try {
-      const resp = await fetch('/buscar-elastic', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          texto: texto,
-          size: 20,
-        }),
-      });
-
-      if (!resp.ok) {
-        mostrarAlerta('Error al comunicarse con el servidor (HTTP ' + resp.status + ').', 'danger');
-        return;
-      }
-
-      const data = await resp.json();
-
-      if (data.success === false) {
-        mostrarAlerta(data.error || 'Error en la búsqueda.', 'danger');
-        return;
-      }
-
-      ocultarAlerta();
-      renderResultados(data);
-
-    } catch (err) {
-      console.error(err);
-      mostrarAlerta('Error de comunicación con el servidor.', 'danger');
-    }
-  });
-});
-</script>
 {% endblock %}
