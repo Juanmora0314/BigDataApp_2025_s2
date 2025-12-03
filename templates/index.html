@@ -1,41 +1,113 @@
-{% extends "base.html" %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MinMinas · Normatividad inteligente</title>
 
-{% block title %}Inicio · MinMinas · Plataforma Big Data{% endblock %}
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
 
-{% block content %}
-<section class="py-5">
-  <div class="row align-items-center g-4">
-    <div class="col-lg-6">
-      <h1 class="display-5 fw-bold mb-3">
-        Normatividad y documentos técnicos, en un solo lugar.
-      </h1>
-      <p class="lead text-muted mb-4">
-        Explora la normativa y los documentos técnicos relevantes para el
-        Ministerio de Minas y Energía con un buscador potenciado por Big Data.
-      </p>
-      <div class="d-flex flex-wrap gap-2">
-        <a href="{{ url_for('buscador') }}" class="btn btn-primary btn-lg">
-          Ir al buscador
-        </a>
-        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg">
-          Panel de administración
-        </a>
+  <!-- Estilos propios -->
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/landingPage.css') }}"
+  />
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+        <span class="me-2">🛢️</span>
+        <span>MinMinas · BigData</span>
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#mainNav"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('buscador') }}">Buscador</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('about') }}">Acerca de</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('login') }}">Ingresar</a>
+          </li>
+        </ul>
       </div>
     </div>
+  </nav>
 
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Ejemplos de consultas</h5>
-          <ul class="list-unstyled mb-0 small text-muted">
-            <li>• “transición energética justa”</li>
-            <li>• “licencias de exploración minera”</li>
-            <li>• “seguridad industrial en minas”</li>
-            <li>• “política de hidrocarburos 2025”</li>
-          </ul>
+  <!-- Hero -->
+  <main class="flex-grow-1">
+    <section class="hero">
+      <div class="container">
+        <div class="row align-items-center g-4">
+          <div class="col-lg-7">
+            <p class="mb-2 example-pill">
+              Proyecto Big Data · MinMinas · DIAN
+            </p>
+            <h1 class="hero-title mb-3">
+              Normatividad minera y energética,
+              <span class="hero-highlight">buscada como en 2025.</span>
+            </h1>
+            <p class="hero-subtitle mb-4">
+              Explora resoluciones, leyes y normas de MinMinas con un buscador
+              potenciado por <strong>Elasticsearch</strong> y una base de datos
+              unificada en <strong>MongoDB</strong>.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              <a
+                href="{{ url_for('buscador') }}"
+                class="btn btn-primary-custom"
+              >
+                🔍 Ir al buscador de normas
+              </a>
+              <a
+                href="{{ url_for('login') }}"
+                class="btn btn-outline-dashboard"
+              >
+                📊 Panel administrador
+              </a>
+            </div>
+          </div>
+
+          <div class="col-lg-5">
+            <div class="hero-card">
+              <h5 class="mb-3">¿Qué puedes hacer aquí?</h5>
+              <ul class="mb-0">
+                <li>Buscar normas por texto libre y filtrar resultados.</li>
+                <li>Gestionar usuarios y documentos desde el panel admin.</li>
+                <li>Conectar analítica y explotación de datos normativa.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer text-center mt-auto">
+    <div class="container">
+      <span>
+        Desarrollado por Juan Sebastián Mora Zapata · Proyecto BigData 2025
+      </span>
     </div>
-  </div>
-</section>
-{% endblock %}
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
