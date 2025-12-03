@@ -1,301 +1,42 @@
-/* ================== Reset mínimo ================== */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* =============================
+   Estilos generales de la landing
+   y páginas tipo "about" / "home"
+   ============================= */
 
-html, body {
-  margin: 0;
-  padding: 0;
-}
-
-/* ================== Tema general ================== */
-
-:root {
-  --brand: #0b3b7a;
-  --brand-soft: #e0edff;
-  --brand-alt: #0ea5e9;
-  --ink: #111827;
-  --muted: #6b7280;
-  --card-bg: #ffffff;
-  --card-ring: rgba(148, 163, 184, 0.4);
-  --radius-lg: 18px;
-}
-
-/* Fondo general de la landing */
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at top, #e0f2fe 0, #f5f7fa 45%, #ffffff 100%);
-  color: var(--ink);
-  min-height: 100vh;
+  background-color: #f5f7fb;
 }
 
-/* ================== Navbar ================== */
-
-.navbar-main {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.85);
-  border-bottom: 1px solid rgba(209, 213, 219, 0.6);
+/* Contenedor principal */
+main.container {
+  min-height: calc(100vh - 140px);
 }
 
-.navbar-brand-text {
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--brand);
+/* Tarjeta creador en about */
+.card-img-top {
+  object-fit: cover;
+  height: 260px;
 }
 
-.navbar-nav .nav-link {
-  font-weight: 500;
-  color: var(--muted);
+/* Botones de enlaces sociales */
+.btn-info {
+  background-color: #1da1f2;
+  border-color: #1da1f2;
 }
 
-.navbar-nav .nav-link.active,
-.navbar-nav .nav-link:hover {
-  color: var(--brand);
+/* Pequeñas sombras suaves */
+.shadow-sm-sm {
+  box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.08);
 }
 
-/* ================== Hero ================== */
-
-.hero {
-  padding: 4rem 0 3rem;
-}
-
-.hero-inner {
-  display: flex;
-  align-items: center;
-  gap: 3rem;
-}
-
-.hero-left,
-.hero-right {
-  flex: 1 1 0;
-}
-
-/* Badge superior */
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  background: rgba(59, 130, 246, 0.08);
-  color: #1d4ed8;
-  font-size: 0.85rem;
+/* Ajustes del nav (opcional, solo si lo usas) */
+.navbar-brand {
   font-weight: 600;
 }
 
-/* Título principal */
-.hero-title {
-  margin-top: 1.1rem;
-  font-size: 2.6rem;
-  font-weight: 800;
-  color: var(--brand);
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-}
-
-/* Parte destacada del título con degradado */
-.hero-highlight {
-  background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-
-/* Subtítulo */
-.hero-subtitle {
-  margin-top: 0.9rem;
-  font-size: 1.05rem;
-  color: var(--muted);
-  max-width: 34rem;
-}
-
-/* Tarjeta principal (resumen + botones) */
-.hero-card {
-  margin-top: 1.6rem;
-  padding: 1.9rem;
-  border-radius: var(--radius-lg);
-  background: var(--card-bg);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
-  border: 1px solid var(--card-ring);
-}
-
-/* Botones */
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  margin-top: 1.2rem;
-}
-
-.btn-primary-custom {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.65rem 1.6rem;
-  border-radius: 999px;
-  border: none;
-  font-weight: 600;
-  font-size: 0.98rem;
-  background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
-  color: #ffffff;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.btn-primary-custom:hover {
-  filter: brightness(1.08);
-}
-
-.btn-outline-dashboard {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.65rem 1.6rem;
-  border-radius: 999px;
-  border: 1px solid var(--brand);
-  background: rgba(15, 118, 110, 0.03);
-  font-weight: 500;
-  font-size: 0.98rem;
-  color: var(--brand);
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.btn-outline-dashboard:hover {
-  background: rgba(37, 99, 235, 0.06);
-}
-
-/* Pills de ejemplos de búsqueda */
-.hero-examples {
-  margin-top: 1.4rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.example-pill {
-  padding: 0.25rem 0.8rem;
-  border-radius: 999px;
-  background: var(--brand-soft);
-  color: #1d4ed8;
-  font-size: 0.82rem;
-}
-
-/* Lado derecho (ilustración / cards mini) */
-.hero-right {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-panel {
-  width: 100%;
-  max-width: 380px;
-  padding: 1.6rem;
-  border-radius: 1.5rem;
-  background: radial-gradient(circle at top, #eff6ff 0, #ffffff 45%, #e5e7eb 100%);
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.22);
-}
-
-/* Tarjetas pequeñas dentro del panel */
-.hero-mini-card {
-  padding: 0.8rem 0.95rem;
-  border-radius: 0.9rem;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(209, 213, 219, 0.8);
-  margin-bottom: 0.6rem;
-}
-
-.hero-mini-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--brand);
-}
-
-.hero-mini-meta {
-  margin-top: 0.2rem;
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
-/* ================== Sección de estadísticas ================== */
-
-.stats-section {
-  padding: 0 0 3.5rem;
-}
-
-.stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.stat-card {
-  flex: 1 1 0;
-  min-width: 180px;
-  padding: 1.1rem;
-  border-radius: var(--radius-lg);
-  background: #ffffff;
-  border: 1px solid rgba(209, 213, 219, 0.7);
-}
-
-.stat-value {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--brand);
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-/* ================== Footer ================== */
-
-.footer-minminas {
-  border-top: 1px solid rgba(209, 213, 219, 0.7);
-  padding: 1.3rem 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-/* ================== Responsivo ================== */
-
-@media (max-width: 992px) {
-  .hero-inner {
-    flex-direction: column;
-  }
-
-  .hero {
-    padding-top: 3.2rem;
-  }
-
-  .hero-right {
-    order: -1;
-  }
-
-  .hero-title {
-    font-size: 2.1rem;
-  }
-}
-
+/* Responsive */
 @media (max-width: 576px) {
-  .hero-card {
-    padding: 1.5rem;
-  }
-
-  .hero-title {
-    font-size: 1.9rem;
-  }
-
-  .hero-subtitle {
-    font-size: 0.98rem;
+  main.container {
+    padding-top: 2.5rem !important;
   }
 }

@@ -15,12 +15,16 @@ from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 from elasticsearch import Elasticsearch
 
-# ====================== Carga de variables de entorno ======================
+# =====================================================================
+#                   Carga de variables de entorno
+# =====================================================================
 
 load_dotenv()
 
 # ---------------------- Flask ----------------------
 app = Flask(__name__)
+
+# Clave de sesión (usa la de .env; si no, una insegura para desarrollo)
 app.secret_key = os.getenv("SECRET_KEY", "dev_key_insegura_cambia_esto")
 
 # ---------------------- MongoDB ----------------------
@@ -36,6 +40,7 @@ if MONGO_URI:
     try:
         mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
         mongo_db = mongo_client[MONGO_DB]
+        # ping para validar conexión
         mongo_db.command("ping")
         usuarios_col = mongo_db[MONGO_COLECCION]
         print(f"[OK] MongoDB conectado a {MONGO_DB} / colección {MONGO_COLECCION}")
@@ -59,6 +64,7 @@ if ELASTIC_CLOUD_ID and ELASTIC_API_KEY:
             api_key=ELASTIC_API_KEY,
         )
         info = elastic_client.info()
+        # Solo para log
         print(f"[OK] Elasticsearch conectado: {info['cluster_name']}")
         elastic_configured = True
     except Exception as e:
@@ -69,6 +75,44 @@ else:
 app.config["ELASTIC_CLIENT"] = elastic_client
 app.config["ELASTIC_CONFIGURED"] = elastic_configured
 app.config["ELASTIC_INDEX_DEFAULT"] = ELASTIC_INDEX_DEFAULT
+
+
+# =====================================================================
+#                      Utilidades auxiliares
+# =====================================================================
+
+def _first_existing(source: dict, keys, default=None):
+    """
+    Devuelve el primer valor no vacío que encuentre en source
+    para las llaves indicadas. Sirve para cuando los campos del
+    índice tienen nombres distintos (Titulo, titulo_norma, etc.).
+    """
+    if not source:
+        return default
+    for k in keys:
+        if k in source and source[k] not in (None, "", "N/D"):
+            return source[k]
+    return default
+
+
+@app.context_processor
+def inject_current_user():
+    """
+    Inyecta current_user en todas las plantillas a partir de session,
+    para que base.html pueda hacer:
+      {% if current_user %} ... {% endif %}
+    sin romperse.
+    """
+    if "user_id" in session:
+        return {
+            "current_user": {
+                "id": session.get("user_id"),
+                "username": session.get("username"),
+                "rol": session.get("rol", "usuario"),
+            }
+        }
+    return {"current_user": None}
+
 
 # =====================================================================
 #                               RUTAS
@@ -89,6 +133,13 @@ def about():
 # ---------------------- Login / Logout ----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Inicio de sesión:
+      - Busca por username o email.
+      - Verifica password hasheado con bcrypt/passlib.
+      - Guarda info básica en session.
+      - Redirige al panel de usuarios.
+    """
     if request.method == "POST":
         identifier = request.form.get("username") or request.form.get("email")
         password = request.form.get("password")
@@ -102,11 +153,13 @@ def login():
         )
 
         if user and check_password_hash(user["password"], password):
-            session["user_id"] = str(user["_id"])
+            session["user_id"] = str(user.get("_id"))
             session["username"] = user.get("username")
             session["rol"] = user.get("rol", "usuario")
+
+            # Aquí podrías actualizar último acceso, etc.
             flash("Inicio de sesión correcto.", "success")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("panel_usuarios"))
         else:
             flash("Usuario o contraseña incorrectos.", "danger")
 
@@ -120,18 +173,49 @@ def logout():
     return redirect(url_for("index"))
 
 
-# ---------------------- Dashboard sencillo ----------------------
-@app.route("/dashboard")
-def dashboard():
+# ---------------------- Panel administrador / usuarios ----------------------
+@app.route("/panel-usuarios")
+def panel_usuarios():
+    """
+    Panel de administración de usuarios.
+    Se usa como destino del botón 'Panel' y del botón 'Ver usuarios registrados'
+    que tienes en login.html / base.html.
+    """
     if "user_id" not in session:
+        flash("Debes iniciar sesión para acceder al panel.", "warning")
         return redirect(url_for("login"))
-    # Aquí puedes cambiar por admin.html o el template que tú uses
-    return render_template("admin.html")
+
+    if not usuarios_col:
+        flash("Base de datos de usuarios no disponible.", "danger")
+        return redirect(url_for("index"))
+
+    # Traemos todos los usuarios (puedes filtrar campos si quieres)
+    usuarios = list(
+        usuarios_col.find(
+            {},
+            {
+                "username": 1,
+                "email": 1,
+                "rol": 1,
+                "activo": 1,
+                "ultimo_acceso": 1,
+            },
+        )
+    )
+
+    # admin.html puede mostrar esta tabla, o puedes apuntar a admin_usuarios.html
+    return render_template("admin.html", usuarios=usuarios)
 
 
 # ---------------------- Buscador (Elasticsearch) ----------------------
 @app.route("/buscador")
 def buscador():
+    """
+    Buscador sobre Elasticsearch.
+    - Si no hay query, solo muestra el formulario.
+    - Si Elasticsearch no está configurado, muestra un mensaje.
+    - Mapea varios posibles nombres de campos para título, entidad, año y tipo.
+    """
     q = request.args.get("q", "").strip()
     elastic_configured_flag = current_app.config.get("ELASTIC_CONFIGURED", False)
     resultados = []
@@ -154,22 +238,44 @@ def buscador():
                 size=20,
             )
 
-            resultados = [
-                {
-                    "id": hit["_id"],
-                    "score": hit["_score"],
-                    "titulo": hit["_source"].get("titulo"),
-                    "entidad": hit["_source"].get("entidad"),
-                    "anio": hit["_source"].get("anio"),
-                    "tipo": hit["_source"].get("tipo"),
-                }
-                for hit in resp["hits"]["hits"]
-            ]
+            hits = resp.get("hits", {}).get("hits", [])
+            for hit in hits:
+                source = hit.get("_source", {}) or {}
+
+                titulo = _first_existing(
+                    source,
+                    ["titulo", "Titulo", "titulo_norma", "Titulo_norma"],
+                )
+                entidad = _first_existing(
+                    source,
+                    ["entidad", "Entidad", "entidad_emisora", "Entidad_emisora"],
+                )
+                anio = _first_existing(
+                    source,
+                    ["anio", "Anio", "año", "Año", "anio_publicacion", "Anio_publicacion"],
+                )
+                tipo = _first_existing(
+                    source,
+                    ["tipo", "Tipo", "tipo_norma", "Tipo_norma"],
+                )
+
+                resultados.append(
+                    {
+                        "id": hit.get("_id"),
+                        "score": hit.get("_score"),
+                        "titulo": titulo,
+                        "entidad": entidad,
+                        "anio": anio,
+                        "tipo": tipo,
+                    }
+                )
+
         except Exception as e:
+            # Si algo se rompe en Elastic, no tumbamos la app
             error_msg = f"Error al consultar Elasticsearch: {e}"
 
     elif q and not elastic_configured_flag:
-        error_msg = "El buscador no está configurado (Elasticsearch sin URL)."
+        error_msg = "El buscador no está configurado (Elasticsearch sin credenciales)."
 
     return render_template(
         "buscador.html",
@@ -180,7 +286,11 @@ def buscador():
     )
 
 
-# ---------------------- Punto de entrada ----------------------
+# =====================================================================
+#                         Punto de entrada local
+# =====================================================================
+
 if __name__ == "__main__":
-    # En Render no se usa este run, pero en local sí.
+    # En Render se usa gunicorn (no entra aquí).
+    # En tu máquina local ejecutas: python app.py
     app.run(debug=True)
