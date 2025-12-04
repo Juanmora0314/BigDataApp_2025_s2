@@ -1,6 +1,5 @@
+# crear_admin.py
 import os
-from getpass import getpass
-
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash
@@ -11,44 +10,28 @@ MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB", "minminas_app")
 MONGO_COLECCION = os.getenv("MONGO_COLECCION", "usuarios")
 
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
+col = db[MONGO_COLECCION]
 
-def main():
-    if not MONGO_URI:
-        print("❌ No hay MONGO_URI en el .env")
-        return
+username = "admin"
+email = "admin@example.com"
+password_plano = "Admin123*"
 
-    client = MongoClient(MONGO_URI)
-    db = client[MONGO_DB]
-    col = db[MONGO_COLECCION]
+doc = col.find_one({"username": username})
 
-    print("=== Crear usuario ADMIN ===")
-    username = input("Usuario: ").strip()
-    email = input("Correo: ").strip()
-
-    if col.find_one({"$or": [{"username": username}, {"email": email}]}):
-        print("⚠️ Ya existe un usuario con ese username o correo.")
-        return
-
-    pwd1 = getpass("Contraseña: ")
-    pwd2 = getpass("Confirma la contraseña: ")
-    if pwd1 != pwd2:
-        print("❌ Las contraseñas no coinciden.")
-        return
-
-    hashed = generate_password_hash(pwd1)
-
-    user_doc = {
-        "username": username,
-        "email": email,
-        "password": hashed,
-        "rol": "admin",
-        "activo": True,
-        "ultimo_acceso": None,
-    }
-
-    col.insert_one(user_doc)
-    print("✅ Usuario admin creado correctamente.")
-
-
-if __name__ == "__main__":
-    main()
+if doc:
+    print("⚠️ Ya existe un usuario 'admin'. No se creó uno nuevo.")
+else:
+    col.insert_one(
+        {
+            "username": username,
+            "email": email,
+            "rol": "admin",
+            "password": generate_password_hash(password_plano),
+            "activo": True,
+        }
+    )
+    print("✅ Usuario admin creado:")
+    print(f"  usuario: {username}")
+    print(f"  contraseña: {password_plano}")

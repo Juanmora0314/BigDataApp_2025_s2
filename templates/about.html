@@ -1,56 +1,58 @@
 {% extends "base.html" %}
-{% set active_page = "about" %}
+
 {% block title %}Acerca del creador · MinMinas BigData{% endblock %}
 
 {% block content %}
-<section class="about-hero">
-  <div class="text-center">
+<main class="container my-5">
+  <section class="text-center">
     <img
-      src="{{ url_for('static', filename='img/juan_mora.jpg') }}"
+      src="{{ url_for('static', filename='Images/creador.png') }}"
       alt="Foto del creador"
-      class="creator-photo rounded-circle shadow-sm"
+      class="about-photo mb-4"
     />
-    <h1 class="about-title mt-3">Acerca del creador</h1>
-  </div>
 
-  <div class="about-body mx-auto mt-4">
-    <p>
+    <h1 class="mb-4">Acerca del creador</h1>
+
+    <p class="lead">
       <strong>Juan Sebastián Mora Zapata</strong>, estudiante de Maestría en
       Analítica de Datos y profesional en transformación digital, desarrolla
       esta solución como proyecto de Big Data aplicada a la normatividad de
       MinMinas.
     </p>
 
-    <p>
+    <p class="mt-3">
       La aplicación integra <strong>MongoDB Atlas</strong> para la gestión de
       documentos normativos, <strong>Elasticsearch</strong> para el buscador y
       <strong>Flask</strong> como framework web.
     </p>
 
-    <p>
+    <p class="mt-3">
       El objetivo es facilitar la consulta de normatividad y sentar las bases
-      para analítica avanzada sobre el marco regulatorio del sector minero-energético.
+      para analítica avanzada sobre el marco regulatorio del sector
+      minero-energético.
     </p>
 
-    <h2 class="h6 mt-4 mb-2">Conecta conmigo:</h2>
-    <div class="about-links">
+    <div class="mt-4">
+      <h2 class="h5 mb-3">Conecta conmigo:</h2>
       <a
-        class="btn btn-outline-primary rounded-pill px-3"
-        href="https://www.linkedin.com/"
+        class="btn btn-outline-primary me-2"
+        href="https://www.linkedin.com/in/juan-sebastian-mora-zapata"
         target="_blank"
-        rel="noopener"
       >
         LinkedIn
       </a>
       <a
-        class="btn btn-outline-secondary rounded-pill px-3"
+        class="btn btn-outline-secondary"
         href="https://github.com/Juanmora0314"
         target="_blank"
-        rel="noopener"
       >
         GitHub
       </a>
     </div>
-  </div>
-</section>
+
+    <p class="text-muted mt-5">
+      Desarrollado por Juan Sebastián Mora Zapata · Proyecto BigData 2025
+    </p>
+  </section>
+</main>
 {% endblock %}

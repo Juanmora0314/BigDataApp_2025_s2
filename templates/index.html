@@ -1,49 +1,39 @@
 {% extends "base.html" %}
 
-{% block title %}Inicio · MinMinas · BigData{% endblock %}
+{% block title %}MinMinas · BigData{% endblock %}
 
 {% block content %}
-<div class="hero-card mt-2">
-  <div class="row g-4 align-items-center">
-    <div class="col-lg-7">
-      <div class="hero-badge mb-3">
-        <span>Proyecto Big Data · MinMinas</span>
-      </div>
-      <h1 class="hero-title mb-3">
-        Normatividad minera y energética,
-        <span class="hero-highlight">buscada como en 2025.</span>
+<main class="container my-5">
+  <section class="row align-items-center">
+    <div class="col-lg-8">
+      <h1 class="display-5 fw-bold mb-3">
+        Normatividad minera y energética, buscada como en 2025.
       </h1>
-      <p class="hero-subtitle mb-4">
-        Explora resoluciones, leyes y normas de MinMinas con un buscador
-        potenciado por <strong>Elasticsearch</strong> y una base de datos
-        unificada en <strong>MongoDB</strong>.
+
+      <p class="lead">
+        Esta aplicación combina Big Data, Elasticsearch y MongoDB Atlas para
+        entregarte resultados relevantes del marco regulatorio del Ministerio de Minas
+        y Energía.
       </p>
 
-      <div class="hero-actions d-flex flex-wrap gap-3 mb-2">
-        <a href="{{ url_for('buscador') }}" class="btn btn-primary btn-lg">
-          🔎 Ir al buscador de normas
-        </a>
-
-        {% if current_user %}
-          <a href="{{ url_for('panel_usuarios') }}" class="btn btn-outline-primary btn-lg">
-            📊 Panel administrador
-          </a>
-        {% else %}
-          <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
-            👤 Ingresar al panel
-          </a>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="col-lg-5">
-      <h5 class="mb-3 text-primary-app">¿Qué puedes hacer aquí?</h5>
-      <ul class="mb-0">
-        <li>Buscar normas por texto libre y filtrar resultados.</li>
-        <li>Gestionar usuarios y documentos desde el panel admin.</li>
-        <li>Conectar analítica y explotación de datos normativos.</li>
+      <ul class="mt-3">
+        <li>Búsqueda por tema, entidad, año o tipo de norma.</li>
+        <li>Priorización por relevancia (score Elasticsearch).</li>
+        <li>
+          Base lista para analítica avanzada y modelos de recomendación.
+        </li>
       </ul>
+
+      <div class="mt-4">
+        <a href="{{ url_for('buscador') }}" class="btn btn-primary btn-lg">
+          Ir al buscador
+        </a>
+      </div>
+
+      <p class="text-muted mt-4 small">
+        Desarrollado por Juan Sebastián Mora Zapata · Proyecto BigData 2025
+      </p>
     </div>
-  </div>
-</div>
+  </section>
+</main>
 {% endblock %}

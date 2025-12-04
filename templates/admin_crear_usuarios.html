@@ -1,73 +1,69 @@
 {% extends "base.html" %}
 
-{% block title %}Crear usuario{% endblock %}
+{% block title %}Crear usuario · MinMinas BigData{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <h1 class="mb-4">Crear nuevo usuario</h1>
+<main class="container my-5">
+  <h1 class="h3 mb-4">Crear nuevo usuario</h1>
 
-  <p class="text-muted mb-3">
-    Solo un administrador puede crear cuentas nuevas para acceder al buscador avanzado.
-  </p>
-
-  {% if error_msg %}
-    <div class="alert alert-danger">{{ error_msg }}</div>
+  {% if mensaje %}
+  <div class="alert alert-warning">
+    {{ mensaje }}
+  </div>
   {% endif %}
 
-  <form method="post" class="card p-4 shadow-sm">
+  <form method="post" class="col-lg-6">
     <div class="mb-3">
-      <label for="username" class="form-label">Usuario</label>
+      <label class="form-label">Usuario</label>
       <input
         type="text"
-        class="form-control"
-        id="username"
         name="username"
+        class="form-control"
         required
+        placeholder="juan.mora"
       />
     </div>
 
     <div class="mb-3">
-      <label for="email" class="form-label">Correo</label>
+      <label class="form-label">Correo</label>
       <input
         type="email"
-        class="form-control"
-        id="email"
         name="email"
+        class="form-control"
         required
+        placeholder="juan@example.com"
       />
     </div>
 
     <div class="mb-3">
-      <label for="rol" class="form-label">Rol</label>
-      <select class="form-select" id="rol" name="rol">
-        <option value="usuario" selected>Usuario estándar</option>
+      <label class="form-label">Rol</label>
+      <select name="rol" class="form-select">
+        <option value="usuario">Usuario</option>
         <option value="admin">Administrador</option>
       </select>
     </div>
 
     <div class="mb-3">
-      <label for="password" class="form-label">Contraseña inicial</label>
+      <label class="form-label">Contraseña</label>
       <input
         type="password"
-        class="form-control"
-        id="password"
         name="password"
+        class="form-control"
         required
         minlength="6"
       />
-      <div class="form-text">
-        (Más adelante puedes implementar cambio de contraseña por parte del usuario).
-      </div>
     </div>
 
-    <div class="d-flex justify-content-between">
-      <a href="{{ url_for('admin_usuarios') }}" class="btn btn-outline-secondary">
-        Volver al listado
-      </a>
-      <button type="submit" class="btn btn-primary">
-        Crear usuario
-      </button>
-    </div>
+    <button type="submit" class="btn btn-primary">
+      Guardar usuario
+    </button>
+    <a href="{{ url_for('panel_usuarios') }}" class="btn btn-link">
+      Volver al listado
+    </a>
   </form>
-</div>
+
+  <p class="text-muted mt-4 small">
+    Desarrollado por Juan Sebastián Mora Zapata · Proyecto BigData 2025
+  </p>
+</main>
 {% endblock %}

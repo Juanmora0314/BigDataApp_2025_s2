@@ -1,99 +1,96 @@
 {% extends "base.html" %}
-{% set active_page = "buscador" %}
+
 {% block title %}Buscador · MinMinas BigData{% endblock %}
 
 {% block content %}
-<section class="hero-section">
-  <div class="row g-4 align-items-center">
-    <div class="col-lg-7">
-      <div class="hero-card">
-        <h1 class="hero-title">
-          Normatividad minera y energética, buscada como en 2025.
-        </h1>
-        <p class="hero-text">
-          Escribe palabras clave relacionadas con la norma que deseas consultar.
-          El buscador combina Big Data, Elasticsearch y MongoDB Atlas para
-          entregarte resultados relevantes del marco regulatorio de MinMinas.
-        </p>
-        <ul class="hero-list">
-          <li>Búsqueda por tema, entidad, año o tipo de norma.</li>
-          <li>Priorización por relevancia (<span class="badge-score">score</span> Elasticsearch).</li>
-          <li>Base lista para analítica avanzada y modelos de recomendación.</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="col-lg-5">
-      <div class="search-panel">
-        <form method="get" action="{{ url_for('buscador') }}">
-          <label for="q" class="form-label search-label">
-            Escribe palabras clave relacionadas con la norma que deseas consultar.
-          </label>
-          <div class="input-group input-group-lg">
-            <input
-              type="text"
-              class="form-control"
-              id="q"
-              name="q"
-              placeholder="regalías, licencias ambientales, transición energética..."
-              value="{{ query or '' }}"
-            />
-            <button class="btn btn-primary search-btn" type="submit">
-              🔎 Buscar
-            </button>
-          </div>
-        </form>
-
-        {% if query %}
-          <div class="mt-4">
-            <p class="mb-1 text-muted small">
-              Resultados para: <strong>"{{ query }}"</strong>
-            </p>
-            <span class="badge rounded-pill bg-soft-primary">
-              {{ total }} documento{{ 's' if total != 1 else '' }} encontrado{{ 's' if total != 1 else '' }}
-            </span>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</section>
-
-{% if query %}
-  <section class="results-section mt-4">
-    {% if resultados %}
-      <div class="results-grid">
-        {% for doc in resultados %}
-          <article class="result-card">
-            <h2 class="result-title">
-              {{ doc.titulo }}
-            </h2>
-            <dl class="result-meta">
-              <div>
-                <dt>Entidad</dt>
-                <dd>{{ doc.entidad }}</dd>
-              </div>
-              <div>
-                <dt>Año</dt>
-                <dd>{{ doc.anio }}</dd>
-              </div>
-              <div>
-                <dt>Tipo</dt>
-                <dd>{{ doc.tipo }}</dd>
-              </div>
-              <div>
-                <dt>score</dt>
-                <dd>{{ '%.2f'|format(doc.score) }}</dd>
-              </div>
-            </dl>
-          </article>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="text-muted">
-        No se encontraron documentos para esta búsqueda.
+<main class="container my-5">
+  <section class="row">
+    <div class="col-lg-6">
+      <h1 class="display-6 fw-bold mb-3">
+        Normatividad minera y energética, buscada como en 2025.
+      </h1>
+      <p>
+        Escribe palabras clave relacionadas con la norma que deseas consultar.
+        El buscador combina Big Data, Elasticsearch y MongoDB Atlas para entregarte
+        resultados relevantes del marco regulatorio de MinMinas.
       </p>
-    {% endif %}
+      <ul class="mt-2">
+        <li>Búsqueda por tema, entidad, año o tipo de norma.</li>
+        <li>Priorización por relevancia (score Elasticsearch).</li>
+        <li>Base lista para analítica avanzada y modelos de recomendación.</li>
+      </ul>
+    </div>
+
+    <div class="col-lg-6">
+      <form
+        class="d-flex flex-column flex-sm-row gap-2 mt-3 mt-lg-0"
+        method="get"
+        action="{{ url_for('buscador') }}"
+      >
+        <input
+          type="text"
+          class="form-control form-control-lg"
+          name="q"
+          placeholder="regalías, licencias ambientales, transición energética..."
+          value="{{ query or '' }}"
+        />
+        <button class="btn btn-primary btn-lg" type="submit">
+          🔍 Buscar
+        </button>
+      </form>
+
+      {% if query %}
+      <p class="mt-3 text-muted">
+        Resultados para: <strong>"{{ query }}"</strong>
+        {% if total is not none %} · {{ total }} documento(s){% endif %}
+      </p>
+      {% endif %}
+
+      {% if error_msg %}
+      <div class="alert alert-danger mt-3">
+        {{ error_msg }}
+      </div>
+      {% endif %}
+    </div>
   </section>
-{% endif %}
+
+  {% if resultados %}
+  <section class="mt-4">
+    <div class="result-grid">
+      {% for r in resultados %}
+      <article class="result-card">
+        <h2 class="h5 mb-2">
+          {{ r.titulo or "Sin título" }}
+        </h2>
+
+        <dl class="result-meta">
+          <div>
+            <dt>Entidad</dt>
+            <dd>{{ r.entidad or "N/D" }}</dd>
+          </div>
+          <div>
+            <dt>Año</dt>
+            <dd>{{ r.anio or "N/D" }}</dd>
+          </div>
+          <div>
+            <dt>Tipo</dt>
+            <dd>{{ r.tipo or "N/D" }}</dd>
+          </div>
+          <div>
+            <dt>score</dt>
+            <dd>{{ "%.2f"|format(r.score or 0) }}</dd>
+          </div>
+        </dl>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% elif query and not error_msg %}
+  <p class="mt-4 text-muted">No se encontraron normas para esa consulta.</p>
+  {% endif %}
+
+  <p class="text-muted mt-5 small">
+    Desarrollado por Juan Sebastián Mora Zapata · Proyecto BigData 2025
+  </p>
+</main>
 {% endblock %}

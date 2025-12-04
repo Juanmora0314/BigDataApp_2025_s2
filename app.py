@@ -23,11 +23,10 @@ from elasticsearch import Elasticsearch
 
 load_dotenv()
 
-# ---------------------- Flask ----------------------
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev_key_insegura_cambia_esto")
 
-# ---------------------- MongoDB (usuarios) ----------------------
+# ---------------------- MongoDB ----------------------
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB", "minminas_app")
 MONGO_COLECCION = os.getenv("MONGO_COLECCION", "usuarios")
@@ -51,36 +50,24 @@ else:
 # ---------------------- Elasticsearch ----------------------
 ELASTIC_CLOUD_ID = os.getenv("ELASTIC_CLOUD_ID")
 ELASTIC_API_KEY = os.getenv("ELASTIC_API_KEY")
-
-# Soporte alterno por URL simple (opcional)
-ELASTIC_URL = os.getenv("ELASTIC_URL")
-
-ELASTIC_INDEX_DEFAULT = os.getenv(
-    "ELASTIC_INDEX_DEFAULT",
-    os.getenv("ELASTIC_INDEX", "minminas-normatividad"),
-)
+ELASTIC_INDEX_DEFAULT = os.getenv("ELASTIC_INDEX_DEFAULT", "minminas-normatividad")
 
 elastic_client = None
 elastic_configured = False
 
-try:
-    if ELASTIC_CLOUD_ID and ELASTIC_API_KEY:
+if ELASTIC_CLOUD_ID and ELASTIC_API_KEY:
+    try:
         elastic_client = Elasticsearch(
             cloud_id=ELASTIC_CLOUD_ID,
             api_key=ELASTIC_API_KEY,
         )
-    elif ELASTIC_URL:
-        elastic_client = Elasticsearch(ELASTIC_URL)
-
-    if elastic_client is not None:
         info = elastic_client.info()
         print(f"[OK] Elasticsearch conectado: {info['cluster_name']}")
         elastic_configured = True
-    else:
-        print("[WARN] No hay configuración válida para Elasticsearch.")
-
-except Exception as e:
-    print(f"[ERROR] Conectando a Elasticsearch: {e}")
+    except Exception as e:
+        print(f"[ERROR] Conectando a Elasticsearch: {e}")
+else:
+    print("[WARN] No hay ELASTIC_CLOUD_ID o ELASTIC_API_KEY. Buscador desactivado.")
 
 app.config["ELASTIC_CLIENT"] = elastic_client
 app.config["ELASTIC_CONFIGURED"] = elastic_configured
@@ -90,6 +77,7 @@ app.config["ELASTIC_INDEX_DEFAULT"] = ELASTIC_INDEX_DEFAULT
 # =====================================================================
 #                      Utilidades auxiliares
 # =====================================================================
+
 
 def _first_existing(source: dict, keys, default=None):
     """
@@ -105,204 +93,11 @@ def _first_existing(source: dict, keys, default=None):
     return default
 
 
-def _extract_year(source: dict):
-    """
-    Intenta obtener el año desde diferentes campos (anio, año, year, fecha...).
-    """
-    year = _first_existing(
-        source,
-        [
-            "anio",
-            "Anio",
-            "Año",
-            "ANO",
-            "ano",
-            "year",
-            "Year",
-            "YEAR",
-            "anio_publicacion",
-            "Anio_publicacion",
-            "Año_publicacion",
-            "ano_publicacion",
-        ],
-        default=None,
-    )
-
-    if year not in (None, ""):
-        return year
-
-    # Intentar derivar el año desde una fecha completa
-    fecha = _first_existing(
-        source,
-        [
-            "fecha",
-            "Fecha",
-            "fecha_publicacion",
-            "Fecha_publicacion",
-            "FECHA",
-            "date",
-            "Date",
-        ],
-        default=None,
-    )
-
-    if fecha:
-        s = str(fecha)
-        candidatos = [s[:4], s[-4:]]
-        for c in candidatos:
-            if c.isdigit():
-                return c
-
-    return "N/D"
-
-
-def normalizar_resultados_es(resp):
-    """
-    Convierte la respuesta de Elasticsearch en una lista de dicts
-    con las claves: titulo, entidad, anio, tipo, score.
-    """
-    resultados = []
-
-    hits = resp.get("hits", {}).get("hits", [])
-
-    for hit in hits:
-        src = hit.get("_source", {}) or {}
-
-        titulo = _first_existing(
-            src,
-            [
-                "titulo",
-                "Titulo",
-                "Título",
-                "TITULO",
-                "titulo_norma",
-                "Titulo_norma",
-                "Título_norma",
-                "TITULO_NORMA",
-                "nombre_norma",
-                "Nombre_norma",
-                "title",
-                "Title",
-                "name",
-                "Name",
-            ],
-            default="Sin título",
-        )
-
-        entidad = _first_existing(
-            src,
-            [
-                "entidad",
-                "Entidad",
-                "ENTIDAD",
-                "entidad_emisora",
-                "Entidad_emisora",
-                "ENTIDAD_EMISORA",
-                "organismo",
-                "Organismo",
-                "emisor",
-                "Emisor",
-                "issuer",
-                "Issuer",
-                "entity",
-                "Entity",
-            ],
-            default="N/D",
-        )
-
-        anio = _extract_year(src)
-
-        tipo = _first_existing(
-            src,
-            [
-                "tipo",
-                "Tipo",
-                "TIPO",
-                "tipo_norma",
-                "Tipo_norma",
-                "TIPO_NORMA",
-                "clase_norma",
-                "Clase_norma",
-                "document_type",
-                "Document_type",
-                "tipo_documento",
-                "Tipo_documento",
-            ],
-            default="N/D",
-        )
-
-        resultados.append(
-            {
-                "id": hit.get("_id"),
-                "score": float(hit.get("_score", 0.0) or 0.0),
-                "titulo": titulo,
-                "entidad": entidad,
-                "anio": anio,
-                "tipo": tipo,
-            }
-        )
-
-    total_raw = resp.get("hits", {}).get("total", 0)
-    if isinstance(total_raw, dict):
-        total = total_raw.get("value", 0)
-    else:
-        total = total_raw
-
-    return resultados, total
-
-
-def buscar_normas(query, size=20):
-    """
-    Ejecuta el query en Elasticsearch y devuelve
-    (resultados_normalizados, total_documentos, error_msg)
-    """
-    if not query:
-        return [], 0, None
-
-    if not current_app.config.get("ELASTIC_CONFIGURED", False):
-        return [], 0, "El buscador no está configurado (Elasticsearch sin credenciales)."
-
-    es = current_app.config["ELASTIC_CLIENT"]
-    index_name = current_app.config["ELASTIC_INDEX_DEFAULT"]
-
-    try:
-        resp = es.search(
-            index=index_name,
-            query={
-                "multi_match": {
-                    "query": query,
-                    "fields": [
-                        "titulo^3",
-                        "Titulo^3",
-                        "Título^3",
-                        "titulo_norma^3",
-                        "texto",
-                        "texto_completo",
-                        "entidad",
-                        "entidad_emisora",
-                        "tipo",
-                        "clase_norma",
-                    ],
-                    "type": "best_fields",
-                }
-            },
-            size=size,
-        )
-
-        resultados, total = normalizar_resultados_es(resp)
-        return resultados, total, None
-
-    except Exception as e:
-        return [], 0, f"Error al consultar Elasticsearch: {e}"
-
-
-# ---------------------- Utilidades de sesión / roles ----------------------
-
 def usuario_actual():
     if "user_id" not in session:
         return None
     return {
-        "id": session["user_id"],
+        "id": session.get("user_id"),
         "username": session.get("username"),
         "rol": session.get("rol", "usuario"),
     }
@@ -310,14 +105,25 @@ def usuario_actual():
 
 def es_admin_actual():
     u = usuario_actual()
-    return bool(u) and u["rol"] == "admin"
+    return u is not None and u["rol"] == "admin"
+
+
+def requiere_login(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if "user_id" not in session:
+            flash("Debes iniciar sesión para acceder a esta sección.", "warning")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+
+    return wrapper
 
 
 def requiere_admin(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not es_admin_actual():
-            flash("Debes ingresar como administrador para ver esta opción.", "warning")
+            flash("Debes ingresar como administrador para ver esta opción.", "danger")
             return redirect(url_for("login"))
         return f(*args, **kwargs)
 
@@ -336,17 +142,148 @@ def inject_current_user():
 #                               RUTAS
 # =====================================================================
 
-# ---------------------- Landing / inicio ----------------------
+# ---------------------- Home / Landing ----------------------
 @app.route("/")
 def index():
-    # landing principal (ya tienes templates/landing.html o index.html)
-    return render_template("index.html")
+    # Solo descripción, SIN buscador. El buscador vive en /buscador
+    return render_template("index.html", active_page="home")
 
 
 # ---------------------- Acerca de mí ----------------------
 @app.route("/about")
 def about():
-    return render_template("about.html")
+    return render_template("about.html", active_page="about")
+
+
+# ---------------------- Buscador (Elasticsearch) ----------------------
+@app.route("/buscador")
+def buscador():
+    q = request.args.get("q", "").strip()
+    elastic_configured_flag = current_app.config.get("ELASTIC_CONFIGURED", False)
+    resultados = []
+    error_msg = None
+
+    if q and elastic_configured_flag:
+        es = current_app.config["ELASTIC_CLIENT"]
+        index_name = current_app.config["ELASTIC_INDEX_DEFAULT"]
+
+        try:
+            resp = es.search(
+                index=index_name,
+                query={
+                    "multi_match": {
+                        "query": q,
+                        "fields": [
+                            "titulo^3",
+                            "titulo_norma^3",
+                            "descripcion^2",
+                            "texto",
+                            "texto_completo",
+                            "entidad",
+                            "entidad_emisora",
+                            "tipo",
+                            "tipo_norma",
+                        ],
+                        "type": "best_fields",
+                    }
+                },
+                size=20,
+            )
+
+            hits = resp.get("hits", {}).get("hits", [])
+            for hit in hits:
+                source = hit.get("_source", {}) or {}
+
+                titulo = _first_existing(
+                    source,
+                    [
+                        "titulo",
+                        "Titulo",
+                        "Título",
+                        "TITULO",
+                        "titulo_norma",
+                        "Titulo_norma",
+                        "Título_norma",
+                        "TITULO_NORMA",
+                        "nombre_norma",
+                        "Nombre_norma",
+                    ],
+                    default="Sin título",
+                )
+
+                entidad = _first_existing(
+                    source,
+                    [
+                        "entidad",
+                        "Entidad",
+                        "ENTIDAD",
+                        "entidad_emisora",
+                        "Entidad_emisora",
+                        "ENTIDAD_EMISORA",
+                        "organismo",
+                        "Organismo",
+                    ],
+                    default="N/D",
+                )
+
+                anio = _first_existing(
+                    source,
+                    [
+                        "anio",
+                        "Anio",
+                        "Año",
+                        "ANO",
+                        "anio_publicacion",
+                        "Anio_publicacion",
+                        "Año_publicacion",
+                        "ano_publicacion",
+                    ],
+                    default="N/D",
+                )
+
+                tipo = _first_existing(
+                    source,
+                    [
+                        "tipo",
+                        "Tipo",
+                        "TIPO",
+                        "tipo_norma",
+                        "Tipo_norma",
+                        "TIPO_NORMA",
+                        "clase_norma",
+                        "Clase_norma",
+                    ],
+                    default="N/D",
+                )
+
+                resultados.append(
+                    {
+                        "id": hit.get("_id"),
+                        "score": float(hit.get("_score", 0.0)),
+                        "titulo": titulo or "Sin título",
+                        "entidad": entidad or "N/D",
+                        "anio": anio or "N/D",
+                        "tipo": tipo or "N/D",
+                    }
+                )
+
+        except Exception as e:
+            error_msg = f"Error al consultar Elasticsearch: {e}"
+
+    elif q and not elastic_configured_flag:
+        error_msg = "El buscador no está configurado (Elasticsearch sin credenciales)."
+
+    total = len(resultados)
+
+    return render_template(
+        "buscador.html",
+        active_page="buscador",
+        query=q,
+        resultados=resultados,
+        total=total,
+        elastic_configured=elastic_configured_flag,
+        error_msg=error_msg,
+    )
 
 
 # ---------------------- Login / Logout ----------------------
@@ -357,7 +294,7 @@ def login():
       - Busca por username o email.
       - Verifica password hasheado.
       - Guarda info básica en session.
-      - Redirige al buscador o al panel admin según rol.
+      - Redirige al panel de usuarios (admin).
     """
     if request.method == "POST":
         identifier = request.form.get("username") or request.form.get("email")
@@ -373,19 +310,25 @@ def login():
 
         if user and check_password_hash(user["password"], password):
             session["user_id"] = str(user.get("_id"))
-            session["username"] = user.get("username") or user.get("email")
+            session["username"] = user.get("username")
             session["rol"] = user.get("rol", "usuario")
 
-            flash("Inicio de sesión correcto.", "success")
+            # Fecha/hora del último acceso
+            usuarios_col.update_one(
+                {"_id": user["_id"]},
+                {"$set": {"ultimo_acceso": datetime.utcnow()}},
+            )
 
-            if session["rol"] == "admin":
-                return redirect(url_for("admin_usuarios"))
-            else:
-                return redirect(url_for("buscador"))
+            flash("Inicio de sesión correcto.", "success")
+            return redirect(url_for("panel_usuarios"))
         else:
             flash("Usuario o contraseña incorrectos.", "danger")
 
-    return render_template("login.html")
+    return render_template(
+        "login.html",
+        active_page="login",
+        es_admin=es_admin_actual(),
+    )
 
 
 @app.route("/logout")
@@ -395,42 +338,13 @@ def logout():
     return redirect(url_for("index"))
 
 
-# ---------------------- Buscador (Elasticsearch) ----------------------
-@app.route("/buscador", methods=["GET"])
-def buscador():
-    """
-    Buscador sobre Elasticsearch utilizando las funciones de normalización.
-    """
-    q = request.args.get("q", "").strip()
-    resultados = []
-    total = 0
-    error_msg = None
-
-    if q:
-        resultados, total, error_msg = buscar_normas(q)
-
-    return render_template(
-        "buscador.html",
-        query=q,
-        resultados=resultados,
-        total=total,
-        elastic_configured=current_app.config.get("ELASTIC_CONFIGURED", False),
-        error_msg=error_msg,
-    )
-
-
-# ---------------------- Administración de usuarios ----------------------
-# Alias antiguo para no romper enlaces viejos
+# ---------------------- Panel administrador / usuarios ----------------------
 @app.route("/panel-usuarios")
-def panel_usuarios():
-    return redirect(url_for("admin_usuarios"))
-
-
-@app.route("/admin/usuarios", methods=["GET"])
 @requiere_admin
-def admin_usuarios():
+def panel_usuarios():
     """
-    Listado de usuarios (solo admin).
+    Panel de administración de usuarios.
+    Solo accesible para usuarios con rol 'admin'.
     """
     if not usuarios_col:
         flash("Base de datos de usuarios no disponible.", "danger")
@@ -449,33 +363,29 @@ def admin_usuarios():
         ).sort("username", 1)
     )
 
-    return render_template("admin_usuarios.html", usuarios=usuarios)
+    return render_template(
+        "admin_usuarios.html",
+        active_page="admin",
+        usuarios=usuarios,
+    )
 
 
 @app.route("/admin/usuarios/nuevo", methods=["GET", "POST"])
 @requiere_admin
-def admin_crear_usuario():
+def crear_usuario():
     """
-    Crea un nuevo usuario y le asigna rol.
+    Crea un nuevo usuario (solo admin).
     """
-    if not usuarios_col:
-        flash("Base de datos de usuarios no disponible.", "danger")
-        return redirect(url_for("index"))
-
-    error_msg = None
+    mensaje = None
 
     if request.method == "POST":
-        username = (request.form.get("username") or "").strip()
-        email = (request.form.get("email") or "").strip()
-        rol = request.form.get("rol") or "usuario"
-        password = request.form.get("password") or ""
+        username = request.form["username"].strip()
+        email = request.form["email"].strip()
+        rol = request.form.get("rol", "usuario")
+        password = request.form["password"]
 
-        if not username or not email or not password:
-            error_msg = "Todos los campos son obligatorios."
-        elif usuarios_col.find_one(
-            {"$or": [{"username": username}, {"email": email}]}
-        ):
-            error_msg = "Ya existe un usuario con ese nombre de usuario o correo."
+        if usuarios_col.find_one({"$or": [{"username": username}, {"email": email}]}):
+            mensaje = "Ya existe un usuario con ese nombre o correo."
         else:
             usuarios_col.insert_one(
                 {
@@ -484,13 +394,18 @@ def admin_crear_usuario():
                     "rol": rol,
                     "password": generate_password_hash(password),
                     "activo": True,
+                    "ultimo_acceso": None,
                     "creado_en": datetime.utcnow(),
                 }
             )
             flash("Usuario creado correctamente.", "success")
-            return redirect(url_for("admin_usuarios"))
+            return redirect(url_for("panel_usuarios"))
 
-    return render_template("admin_crear_usuario.html", error_msg=error_msg)
+    return render_template(
+        "admin_crear_usuario.html",
+        active_page="admin",
+        mensaje=mensaje,
+    )
 
 
 # =====================================================================

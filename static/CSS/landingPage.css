@@ -155,17 +155,20 @@ body.app-body {
   margin-top: 1.5rem;
 }
 
-.results-grid {
+/* NUEVA GRID DE RESULTADOS, que usas en buscador.html */
+.result-grid {
+  margin-top: 1.5rem;
   display: grid;
-  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
 }
 
 .result-card {
-  padding: 0.9rem 1.1rem;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.94);
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  background: #ffffff;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
 .result-title {
@@ -175,20 +178,23 @@ body.app-body {
 }
 
 .result-meta {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.15rem 0.75rem;
   margin: 0;
-  font-size: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1.5rem;
 }
 
 .result-meta dt {
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-muted);
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 0.1rem;
 }
 
 .result-meta dd {
   margin: 0;
+  font-size: 0.95rem;
 }
 
 /* ================== Acerca de ================== */
@@ -199,6 +205,18 @@ body.app-body {
   padding-top: 3.5rem; /* baja la foto respecto al header */
 }
 
+/* si en about.html usas class="about-photo" */
+.about-photo {
+  display: block;
+  margin: 5rem auto 1.5rem auto; /* baja la foto para que no choque con el header */
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+}
+
+/* si quedó alguna referencia vieja a .creator-photo, esto sigue funcionando igual */
 .creator-photo {
   width: 170px;
   height: 170px;
