@@ -1,81 +1,139 @@
-{% extends "base.html" %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buscador de normatividad · MinMinas</title>
 
-{% block title %}Buscador de normatividad · MinMinas Big Data{% endblock %}
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/landingPage.css') }}"
+  />
+</head>
+<body class="d-flex flex-column min-vh-100">
 
-{% block content %}
-<main class="container py-5">
-
-  <h1 class="display-6 fw-semibold mb-2">Buscador de normatividad</h1>
-  <p class="text-muted mb-4">
-    Escribe palabras clave relacionadas con la norma que deseas consultar.
-  </p>
-
-  <!-- Formulario de búsqueda -->
-  <form method="get" action="{{ url_for('buscador') }}" class="row g-2 mb-4">
-    <div class="col-sm-9 col-md-10">
-      <input type="search"
-             name="q"
-             value="{{ query or '' }}"
-             class="form-control form-control-lg"
-             placeholder="Ej. 'resolución tarifas', 'ley 1715', 'hidrocarburos'">
-    </div>
-    <div class="col-sm-3 col-md-2 d-grid">
-      <button type="submit" class="btn btn-primary btn-lg">
-        🔎 Buscar
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-main shadow-sm">
+    <div class="container">
+      <a class="navbar-brand navbar-brand-text" href="{{ url_for('index') }}">
+        MinMinas · BigData
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#mainNav"
+      >
+        <span class="navbar-toggler-icon"></span>
       </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('buscador') }}">Buscador</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('about') }}">Acerca de</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('login') }}">Ingresar</a>
+          </li>
+        </ul>
+      </div>
     </div>
-  </form>
+  </nav>
 
-  {% if query %}
-    <!-- Resumen de resultados -->
-    <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
-      <span class="small text-muted">
-        Resultados para: <strong>"{{ query }}"</strong>
-      </span>
+  <!-- Contenido -->
+  <main class="flex-grow-1 py-4">
+    <div class="container">
+      <h2 class="mb-3">Buscador de normatividad</h2>
+      <p class="text-muted mb-4">
+        Escribe palabras clave relacionadas con la norma que deseas consultar.
+      </p>
 
-      {% if total and total > 0 %}
-        <span class="badge bg-secondary">
-          {{ total }} documento(s) encontrado(s)
-        </span>
-      {% else %}
-        <span class="text-danger small">No se encontraron documentos.</span>
-      {% endif %}
-    </div>
-
-    <!-- Lista de resultados -->
-    <section class="resultados-lista">
-      {% for doc in resultados %}
-        {# Si viene de Elasticsearch: doc['_source'].
-           Si ya viene “plano”, usamos el propio doc. #}
-        {% set src = doc.get('_source', doc) %}
-        {% set score = doc.get('_score', doc.get('score', 0)) %}
-
-        <article class="resultado-item border rounded-3 p-3 mb-3 bg-white shadow-sm-sm">
-          <div class="d-flex justify-content-between align-items-start gap-3">
-            <div>
-              <h2 class="h5 mb-1">
-                {{ src.get('titulo', src.get('titulo_norma', 'Sin título')) }}
-              </h2>
-              <p class="small text-muted mb-0">
-                <strong>Entidad:</strong>
-                {{ src.get('entidad', src.get('entidad_emisora', 'N/D')) }}
-                &nbsp;·&nbsp;
-                <strong>Año:</strong>
-                {{ src.get('anio', src.get('anio_norma', 'N/D')) }}
-                &nbsp;·&nbsp;
-                <strong>Tipo:</strong>
-                {{ src.get('tipo', src.get('tipo_norma', 'N/D')) }}
-              </p>
+      <div class="search-card mb-4">
+        <form method="get" action="{{ url_for('buscador') }}">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-9">
+              <input
+                type="text"
+                name="q"
+                class="form-control form-control-lg"
+                placeholder="Ej: regalías carbón 2020"
+                value="{{ query or '' }}"
+                required
+              />
             </div>
+            <div class="col-md-3 d-grid">
+              <button class="btn btn-primary-custom btn-lg" type="submit">
+                🔎 Buscar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
 
-            <span class="badge rounded-pill bg-light text-muted border">
-              score: {{ '%.2f'|format(score) }}
+      {% if error_msg %}
+        <div class="alert alert-warning">{{ error_msg }}</div>
+      {% endif %}
+
+      {% if query and not error_msg %}
+        <h5 class="mb-3">
+          Resultados para:
+          <span class="fw-semibold">"{{ query }}"</span>
+        </h5>
+
+        {% if resultados %}
+          <div class="mb-3">
+            <span class="badge bg-secondary">
+              {{ resultados|length }} documento(s) encontrado(s)
             </span>
           </div>
-        </article>
-      {% endfor %}
-    </section>
-  {% endif %}
 
-</main>
-{% endblock %}
+          {% for r in resultados %}
+            <div class="result-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1">
+                    {{ r.titulo or 'Sin título' }}
+                  </h6>
+                  <div class="result-meta">
+                    <span class="me-2">
+                      <strong>Entidad:</strong> {{ r.entidad or 'N/D' }}
+                    </span>
+                    <span class="me-2">
+                      <strong>Año:</strong> {{ r.anio or 'N/D' }}
+                    </span>
+                    <span>
+                      <strong>Tipo:</strong> {{ r.tipo or 'N/D' }}
+                    </span>
+                  </div>
+                </div>
+                <span class="badge bg-light text-muted">
+                  score: {{ "%.2f"|format(r.score) }}
+                </span>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="alert alert-info">
+            No se encontraron documentos para esa búsqueda.
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer text-center mt-auto">
+    <div class="container">
+      <span>Proyecto BigData 2025 · MinMinas · Elasticsearch + MongoDB</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

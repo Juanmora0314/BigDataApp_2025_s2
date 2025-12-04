@@ -1,42 +1,60 @@
-/* =============================
-   Estilos generales de la landing
-   y páginas tipo "about" / "home"
-   ============================= */
+/* ================== Buscador de normatividad ================== */
 
-body {
-  background-color: #f5f7fb;
+.search-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--card-ring);
 }
 
-/* Contenedor principal */
-main.container {
-  min-height: calc(100vh - 140px);
+.result-item {
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  margin-bottom: 0.75rem;
 }
 
-/* Tarjeta creador en about */
-.card-img-top {
-  object-fit: cover;
-  height: 260px;
+.result-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
-/* Botones de enlaces sociales */
-.btn-info {
-  background-color: #1da1f2;
-  border-color: #1da1f2;
+/* ================== Sección "Acerca de" ================== */
+
+.creador-foto {
+  max-width: 220px;
+  width: 100%;
+  border-radius: 999px;
+  border: 3px solid var(--brand-soft);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
 }
 
-/* Pequeñas sombras suaves */
-.shadow-sm-sm {
-  box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.08);
+/* ================== Footer genérico ================== */
+
+.footer {
+  border-top: 1px solid rgba(209, 213, 219, 0.8);
+  padding: 1.1rem 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.95);
 }
 
-/* Ajustes del nav (opcional, solo si lo usas) */
-.navbar-brand {
+/* ================== Detalles para landing extendida ================== */
+
+.hero-main {
+  max-width: 46rem;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.08);
+  color: #1d4ed8;
+  font-size: 0.85rem;
   font-weight: 600;
-}
-
-/* Responsive */
-@media (max-width: 576px) {
-  main.container {
-    padding-top: 2.5rem !important;
-  }
+  letter-spacing: 0.03em;
 }

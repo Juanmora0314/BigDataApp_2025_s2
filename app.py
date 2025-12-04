@@ -12,6 +12,7 @@ from flask import (
     current_app,
 )
 from pymongo import MongoClient
+    # Werkzeug para hash de contraseñas
 from werkzeug.security import generate_password_hash, check_password_hash
 from elasticsearch import Elasticsearch
 
@@ -136,7 +137,7 @@ def login():
     """
     Inicio de sesión:
       - Busca por username o email.
-      - Verifica password hasheado con bcrypt/passlib.
+      - Verifica password hasheado.
       - Guarda info básica en session.
       - Redirige al panel de usuarios.
     """
@@ -157,7 +158,6 @@ def login():
             session["username"] = user.get("username")
             session["rol"] = user.get("rol", "usuario")
 
-            # Aquí podrías actualizar último acceso, etc.
             flash("Inicio de sesión correcto.", "success")
             return redirect(url_for("panel_usuarios"))
         else:
@@ -178,8 +178,8 @@ def logout():
 def panel_usuarios():
     """
     Panel de administración de usuarios.
-    Se usa como destino del botón 'Panel' y del botón 'Ver usuarios registrados'
-    que tienes en login.html / base.html.
+    Se usa como destino del botón 'Panel' y del botón
+    'Ver usuarios registrados'.
     """
     if "user_id" not in session:
         flash("Debes iniciar sesión para acceder al panel.", "warning")
@@ -189,7 +189,6 @@ def panel_usuarios():
         flash("Base de datos de usuarios no disponible.", "danger")
         return redirect(url_for("index"))
 
-    # Traemos todos los usuarios (puedes filtrar campos si quieres)
     usuarios = list(
         usuarios_col.find(
             {},
@@ -203,7 +202,6 @@ def panel_usuarios():
         )
     )
 
-    # admin.html puede mostrar esta tabla, o puedes apuntar a admin_usuarios.html
     return render_template("admin.html", usuarios=usuarios)
 
 
@@ -271,7 +269,6 @@ def buscador():
                 )
 
         except Exception as e:
-            # Si algo se rompe en Elastic, no tumbamos la app
             error_msg = f"Error al consultar Elasticsearch: {e}"
 
     elif q and not elastic_configured_flag:

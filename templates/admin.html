@@ -19,7 +19,7 @@
             <div class="d-flex justify-content-between align-items-center py-2">
                 <h2 class="h4 mb-0">
                     MinMinas · Analítica de Normatividad
-                    <small class="text-muted">[{{ usuario }}]</small>
+                    <small class="text-light-50">[{{ usuario }}]</small>
                 </h2>
                 <nav>
                     <ul class="nav">
@@ -48,74 +48,76 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="container mt-3">
-        <h1 class="text-center mb-3">Panel de Administración MinMinas</h1>
-        <p class="text-center mb-4">
-            Desde este panel puedes administrar la
-            <b>base de usuarios en MongoDB</b> y la
-            <b>normatividad indexada en Elasticsearch</b> para el Ministerio de Minas
-            y Energía. Los accesos a cada módulo dependen de los permisos
-            asignados a tu usuario.
-        </p>
-
-        <!-- Gestión de usuarios (MongoDB) -->
-        <section class="mb-4">
-            <h4>Usuarios de la aplicación (MongoDB)</h4>
-            <p class="text-muted">
-                Crear, editar y desactivar cuentas, así como asignar roles y permisos
-                para los diferentes módulos de la plataforma.
+        <div class="card card-admin p-4">
+            <h1 class="text-center mb-3">Panel de Administración MinMinas</h1>
+            <p class="text-center mb-4">
+                Desde este panel puedes administrar la
+                <b>base de usuarios en MongoDB</b> y la
+                <b>normatividad indexada en Elasticsearch</b> para el Ministerio de Minas
+                y Energía. Los accesos a cada módulo dependen de los permisos
+                asignados a tu usuario.
             </p>
 
-            {% if permisos and permisos.get('admin_usuarios') %}
-                <a href="/gestor_usuarios" class="btn btn-primary btn-sm">
-                    Gestionar usuarios
-                </a>
-            {% else %}
-                <div class="alert alert-warning py-2 mb-0">
-                    No tienes permiso para gestionar usuarios
-                    (<code>admin_usuarios</code>).
-                </div>
-            {% endif %}
-        </section>
+            <!-- Gestión de usuarios (MongoDB) -->
+            <section class="mb-4">
+                <h4>Usuarios de la aplicación (MongoDB)</h4>
+                <p class="text-muted">
+                    Crear, editar y desactivar cuentas, así como asignar roles y permisos
+                    para los diferentes módulos de la plataforma.
+                </p>
 
-        <!-- Configuración de Elastic -->
-        <section class="mb-4">
-            <h4>Configuración de Elasticsearch</h4>
-            <p class="text-muted">
-                Revisar y actualizar parámetros de conexión, índices por defecto
-                y opciones técnicas para las búsquedas de normatividad.
-            </p>
+                {% if permisos and permisos.get('admin_usuarios') %}
+                    <a href="/gestor_usuarios" class="btn btn-primary btn-sm">
+                        Gestionar usuarios
+                    </a>
+                {% else %}
+                    <div class="alert alert-warning py-2 mb-0">
+                        No tienes permiso para gestionar usuarios
+                        (<code>admin_usuarios</code>).
+                    </div>
+                {% endif %}
+            </section>
 
-            {% if permisos and permisos.get('admin_elastic') %}
-                <a href="/gestor_elastic" class="btn btn-primary btn-sm">
-                    Configurar conexión e índices
-                </a>
-            {% else %}
-                <div class="alert alert-warning py-2 mb-0">
-                    No tienes permiso para configurar Elasticsearch
-                    (<code>admin_elastic</code>).
-                </div>
-            {% endif %}
-        </section>
+            <!-- Configuración de Elastic -->
+            <section class="mb-4">
+                <h4>Configuración de Elasticsearch</h4>
+                <p class="text-muted">
+                    Revisar y actualizar parámetros de conexión, índices por defecto
+                    y opciones técnicas para las búsquedas de normatividad.
+                </p>
 
-        <!-- Carga de documentos a Elastic -->
-        <section class="mb-4">
-            <h4>Carga y actualización de normatividad en Elastic</h4>
-            <p class="text-muted">
-                Cargar archivos PDF y documentos normativos del sector minero-energético,
-                extraer su contenido y actualizar el índice de búsqueda.
-            </p>
+                {% if permisos and permisos.get('admin_elastic') %}
+                    <a href="/gestor_elastic" class="btn btn-primary btn-sm">
+                        Configurar conexión e índices
+                    </a>
+                {% else %}
+                    <div class="alert alert-warning py-2 mb-0">
+                        No tienes permiso para configurar Elasticsearch
+                        (<code>admin_elastic</code>).
+                    </div>
+                {% endif %}
+            </section>
 
-            {% if permisos and permisos.get('admin_data_elastic') %}
-                <a href="/cargar_doc_elastic" class="btn btn-primary btn-sm">
-                    Cargar documentos a Elasticsearch
-                </a>
-            {% else %}
-                <div class="alert alert-warning py-2 mb-0">
-                    No tienes permiso para cargar documentos a Elasticsearch
-                    (<code>admin_data_elastic</code>).
-                </div>
-            {% endif %}
-        </section>
+            <!-- Carga de documentos a Elastic -->
+            <section class="mb-2">
+                <h4>Carga y actualización de normatividad en Elastic</h4>
+                <p class="text-muted">
+                    Cargar archivos PDF y documentos normativos del sector minero-energético,
+                    extraer su contenido y actualizar el índice de búsqueda.
+                </p>
+
+                {% if permisos and permisos.get('admin_data_elastic') %}
+                    <a href="/cargar_doc_elastic" class="btn btn-primary btn-sm">
+                        Cargar documentos a Elasticsearch
+                    </a>
+                {% else %}
+                    <div class="alert alert-warning py-2 mb-0">
+                        No tienes permiso para cargar documentos a Elasticsearch
+                        (<code>admin_data_elastic</code>).
+                    </div>
+                {% endif %}
+            </section>
+        </div>
     </main>
 
     <!-- FOOTER -->
@@ -137,3 +139,4 @@
     </script>
 </body>
 </html>
+
