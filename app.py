@@ -12,7 +12,6 @@ from flask import (
     current_app,
 )
 from pymongo import MongoClient
-    # Werkzeug para hash de contraseñas
 from werkzeug.security import generate_password_hash, check_password_hash
 from elasticsearch import Elasticsearch
 
@@ -24,8 +23,6 @@ load_dotenv()
 
 # ---------------------- Flask ----------------------
 app = Flask(__name__)
-
-# Clave de sesión (usa la de .env; si no, una insegura para desarrollo)
 app.secret_key = os.getenv("SECRET_KEY", "dev_key_insegura_cambia_esto")
 
 # ---------------------- MongoDB ----------------------
@@ -41,7 +38,6 @@ if MONGO_URI:
     try:
         mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
         mongo_db = mongo_client[MONGO_DB]
-        # ping para validar conexión
         mongo_db.command("ping")
         usuarios_col = mongo_db[MONGO_COLECCION]
         print(f"[OK] MongoDB conectado a {MONGO_DB} / colección {MONGO_COLECCION}")
@@ -65,7 +61,6 @@ if ELASTIC_CLOUD_ID and ELASTIC_API_KEY:
             api_key=ELASTIC_API_KEY,
         )
         info = elastic_client.info()
-        # Solo para log
         print(f"[OK] Elasticsearch conectado: {info['cluster_name']}")
         elastic_configured = True
     except Exception as e:
@@ -85,24 +80,21 @@ app.config["ELASTIC_INDEX_DEFAULT"] = ELASTIC_INDEX_DEFAULT
 def _first_existing(source: dict, keys, default=None):
     """
     Devuelve el primer valor no vacío que encuentre en source
-    para las llaves indicadas. Sirve para cuando los campos del
-    índice tienen nombres distintos (Titulo, titulo_norma, etc.).
+    para las llaves indicadas.
     """
     if not source:
         return default
     for k in keys:
-        if k in source and source[k] not in (None, "", "N/D"):
-            return source[k]
+        valor = source.get(k)
+        if valor not in (None, "", "N/D"):
+            return valor
     return default
 
 
 @app.context_processor
 def inject_current_user():
     """
-    Inyecta current_user en todas las plantillas a partir de session,
-    para que base.html pueda hacer:
-      {% if current_user %} ... {% endif %}
-    sin romperse.
+    Inyecta current_user en todas las plantillas.
     """
     if "user_id" in session:
         return {
@@ -178,11 +170,14 @@ def logout():
 def panel_usuarios():
     """
     Panel de administración de usuarios.
-    Se usa como destino del botón 'Panel' y del botón
-    'Ver usuarios registrados'.
+    Solo accesible para usuarios con rol 'admin'.
     """
     if "user_id" not in session:
         flash("Debes iniciar sesión para acceder al panel.", "warning")
+        return redirect(url_for("login"))
+
+    if session.get("rol") != "admin":
+        flash("Debes ser un usuario admin para ver usuarios registrados.", "danger")
         return redirect(url_for("login"))
 
     if not usuarios_col:
@@ -210,9 +205,6 @@ def panel_usuarios():
 def buscador():
     """
     Buscador sobre Elasticsearch.
-    - Si no hay query, solo muestra el formulario.
-    - Si Elasticsearch no está configurado, muestra un mensaje.
-    - Mapea varios posibles nombres de campos para título, entidad, año y tipo.
     """
     q = request.args.get("q", "").strip()
     elastic_configured_flag = current_app.config.get("ELASTIC_CONFIGURED", False)
@@ -240,21 +232,67 @@ def buscador():
             for hit in hits:
                 source = hit.get("_source", {}) or {}
 
+                # Intentamos con MUCHOS posibles nombres de campos
                 titulo = _first_existing(
                     source,
-                    ["titulo", "Titulo", "titulo_norma", "Titulo_norma"],
+                    [
+                        "titulo",
+                        "Titulo",
+                        "Título",
+                        "TITULO",
+                        "titulo_norma",
+                        "Titulo_norma",
+                        "Título_norma",
+                        "TITULO_NORMA",
+                        "nombre_norma",
+                        "Nombre_norma",
+                    ],
+                    default=None,
                 )
+
                 entidad = _first_existing(
                     source,
-                    ["entidad", "Entidad", "entidad_emisora", "Entidad_emisora"],
+                    [
+                        "entidad",
+                        "Entidad",
+                        "ENTIDAD",
+                        "entidad_emisora",
+                        "Entidad_emisora",
+                        "ENTIDAD_EMISORA",
+                        "organismo",
+                        "Organismo",
+                    ],
+                    default=None,
                 )
+
                 anio = _first_existing(
                     source,
-                    ["anio", "Anio", "año", "Año", "anio_publicacion", "Anio_publicacion"],
+                    [
+                        "anio",
+                        "Anio",
+                        "Año",
+                        "ANO",
+                        "anio_publicacion",
+                        "Anio_publicacion",
+                        "Año_publicacion",
+                        "ano_publicacion",
+                    ],
+                    default=None,
                 )
+
                 tipo = _first_existing(
                     source,
-                    ["tipo", "Tipo", "tipo_norma", "Tipo_norma"],
+                    [
+                        "tipo",
+                        "Tipo",
+                        "TIPO",
+                        "tipo_norma",
+                        "Tipo_norma",
+                        "TIPO_NORMA",
+                        "clase_norma",
+                        "Clase_norma",
+                    ],
+                    default=None,
                 )
 
                 resultados.append(
@@ -288,6 +326,4 @@ def buscador():
 # =====================================================================
 
 if __name__ == "__main__":
-    # En Render se usa gunicorn (no entra aquí).
-    # En tu máquina local ejecutas: python app.py
     app.run(debug=True)

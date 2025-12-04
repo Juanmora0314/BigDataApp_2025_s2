@@ -1,60 +1,132 @@
-/* ================== Buscador de normatividad ================== */
+:root {
+  --app-primary: #0f5b40;
+  --app-primary-soft: #d8f3e7;
+  --app-dark: #173a2a;
+  --app-muted: #6d8b7a;
+  --app-bg: #f5f7fb;
+}
+
+body.bg-app {
+  background: radial-gradient(circle at top left, #e2f5ff 0, #f5f7fb 45%, #ffffff 100%);
+  min-height: 100vh;
+}
+
+.app-navbar {
+  border-bottom: 1px solid rgba(15, 91, 64, 0.08);
+}
+
+.text-primary-app {
+  color: var(--app-primary) !important;
+}
+
+.app-main {
+  padding-top: 6rem; /* para no quedar debajo del navbar fijo */
+  padding-bottom: 3rem;
+}
+
+/* ---------- HERO / LANDING ----------- */
+
+.hero-card {
+  background: linear-gradient(135deg, #ffffff 0%, #e9f7ff 35%, #e8f9f0 100%);
+  border-radius: 24px;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(15, 91, 64, 0.08);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.9rem;
+  border-radius: 999px;
+  background-color: #ffffff;
+  border: 1px solid rgba(15, 91, 64, 0.15);
+  font-size: 0.8rem;
+  color: var(--app-muted);
+}
+
+.hero-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--app-dark);
+}
+
+.hero-highlight {
+  color: var(--app-primary);
+}
+
+.hero-subtitle {
+  color: var(--app-muted);
+  max-width: 38rem;
+}
+
+.hero-actions .btn-primary {
+  background-color: var(--app-primary);
+  border-color: var(--app-primary);
+}
+
+.hero-actions .btn-outline-primary {
+  color: var(--app-primary);
+  border-color: var(--app-primary);
+}
+
+/* ---------- ACERCA DEL CREADOR ----------- */
+
+.creator-photo {
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.12);
+}
+
+.social-links a {
+  margin-right: 0.75rem;
+}
+
+.social-links a.btn-outline-dark {
+  border-radius: 999px;
+}
+
+/* ---------- BUSCADOR ----------- */
 
 .search-card {
-  padding: 1.5rem;
-  border-radius: var(--radius-lg);
   background: #ffffff;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
-  border: 1px solid var(--card-ring);
+  border-radius: 20px;
+  padding: 1.8rem 2rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .result-item {
-  padding: 0.9rem 1.1rem;
-  border-radius: 0.9rem;
-  background: #ffffff;
-  border: 1px solid rgba(209, 213, 219, 0.9);
-  margin-bottom: 0.75rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.result-item:last-child {
+  border-bottom: none;
 }
 
 .result-meta {
+  font-size: 0.9rem;
+  color: var(--app-muted);
+}
+
+/* ---------- LOGIN ----------- */
+
+.login-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+}
+
+.app-footer {
   font-size: 0.85rem;
-  color: var(--muted);
-}
-
-/* ================== Sección "Acerca de" ================== */
-
-.creador-foto {
-  max-width: 220px;
-  width: 100%;
-  border-radius: 999px;
-  border: 3px solid var(--brand-soft);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
-}
-
-/* ================== Footer genérico ================== */
-
-.footer {
-  border-top: 1px solid rgba(209, 213, 219, 0.8);
-  padding: 1.1rem 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.95);
-}
-
-/* ================== Detalles para landing extendida ================== */
-
-.hero-main {
-  max-width: 46rem;
-}
-
-.hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  background: rgba(59, 130, 246, 0.08);
-  color: #1d4ed8;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  color: var(--app-muted);
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
 }

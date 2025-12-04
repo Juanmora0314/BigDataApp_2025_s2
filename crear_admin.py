@@ -1,4 +1,5 @@
 import os
+from getpass import getpass
 
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -10,30 +11,44 @@ MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB", "minminas_app")
 MONGO_COLECCION = os.getenv("MONGO_COLECCION", "usuarios")
 
-client = MongoClient(MONGO_URI)
-db = client[MONGO_DB]
-usuarios = db[MONGO_COLECCION]
 
-username = "admin"
-email = "admin@minminas.gov.co"
-password_plano = "Admin2025*"
+def main():
+    if not MONGO_URI:
+        print("❌ No hay MONGO_URI en el .env")
+        return
 
-doc = usuarios.find_one({"$or": [{"username": username}, {"email": email}]})
+    client = MongoClient(MONGO_URI)
+    db = client[MONGO_DB]
+    col = db[MONGO_COLECCION]
 
-if doc:
-    print("⚠️ Ya existe un usuario con ese username o email.")
-else:
-    hashed = generate_password_hash(password_plano)
-    usuarios.insert_one(
-        {
-            "username": username,
-            "email": email,
-            "password": hashed,
-            "rol": "admin",
-            "activo": True,
-        }
-    )
-    print("✅ Usuario admin creado.")
-    print(f"   Usuario: {username}")
-    print(f"   Email:   {email}")
-    print(f"   Clave:   {password_plano}")
+    print("=== Crear usuario ADMIN ===")
+    username = input("Usuario: ").strip()
+    email = input("Correo: ").strip()
+
+    if col.find_one({"$or": [{"username": username}, {"email": email}]}):
+        print("⚠️ Ya existe un usuario con ese username o correo.")
+        return
+
+    pwd1 = getpass("Contraseña: ")
+    pwd2 = getpass("Confirma la contraseña: ")
+    if pwd1 != pwd2:
+        print("❌ Las contraseñas no coinciden.")
+        return
+
+    hashed = generate_password_hash(pwd1)
+
+    user_doc = {
+        "username": username,
+        "email": email,
+        "password": hashed,
+        "rol": "admin",
+        "activo": True,
+        "ultimo_acceso": None,
+    }
+
+    col.insert_one(user_doc)
+    print("✅ Usuario admin creado correctamente.")
+
+
+if __name__ == "__main__":
+    main()
