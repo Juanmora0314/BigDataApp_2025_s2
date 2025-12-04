@@ -1,132 +1,280 @@
+/* ================== Variables ================== */
 :root {
-  --app-primary: #0f5b40;
-  --app-primary-soft: #d8f3e7;
-  --app-dark: #173a2a;
-  --app-muted: #6d8b7a;
-  --app-bg: #f5f7fb;
+  --bg-gradient-start: #fef3c7;
+  --bg-gradient-mid: #f4f5fb;
+  --bg-gradient-end: #e0f2fe;
+
+  --primary: #0057b8;
+  --primary-soft: #e6f0ff;
+  --accent: #f59e0b;
+
+  --text-main: #111827;
+  --text-muted: #6b7280;
+
+  --surface: #ffffff;
+  --surface-soft: #f9fafb;
+  --surface-border: #e5e7eb;
+
+  --radius-lg: 20px;
 }
 
-body.bg-app {
-  background: radial-gradient(circle at top left, #e2f5ff 0, #f5f7fb 45%, #ffffff 100%);
+/* ================== Layout general ================== */
+
+body.app-body {
   min-height: 100vh;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text-main);
+  background: radial-gradient(
+    circle at top left,
+    var(--bg-gradient-start) 0,
+    var(--bg-gradient-mid) 45%,
+    var(--bg-gradient-end) 100%
+  );
+}
+
+.app-topbar {
+  height: 4px;
+  background: linear-gradient(90deg, #f97316, #22c55e, #3b82f6);
 }
 
 .app-navbar {
-  border-bottom: 1px solid rgba(15, 91, 64, 0.08);
+  background-color: var(--surface);
 }
 
-.text-primary-app {
-  color: var(--app-primary) !important;
+.app-navbar .navbar-brand {
+  font-size: 1.15rem;
+}
+
+.brand-dot {
+  color: var(--accent);
+}
+
+.app-navbar .nav-link {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.app-navbar .nav-link.active {
+  color: var(--primary);
+  position: relative;
+}
+
+.app-navbar .nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.2rem;
+  margin-inline: auto;
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--primary));
 }
 
 .app-main {
-  padding-top: 6rem; /* para no quedar debajo del navbar fijo */
-  padding-bottom: 3rem;
-}
-
-/* ---------- HERO / LANDING ----------- */
-
-.hero-card {
-  background: linear-gradient(135deg, #ffffff 0%, #e9f7ff 35%, #e8f9f0 100%);
-  border-radius: 24px;
-  padding: 2.5rem 3rem;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(15, 91, 64, 0.08);
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.9rem;
-  border-radius: 999px;
-  background-color: #ffffff;
-  border: 1px solid rgba(15, 91, 64, 0.15);
-  font-size: 0.8rem;
-  color: var(--app-muted);
-}
-
-.hero-title {
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--app-dark);
-}
-
-.hero-highlight {
-  color: var(--app-primary);
-}
-
-.hero-subtitle {
-  color: var(--app-muted);
-  max-width: 38rem;
-}
-
-.hero-actions .btn-primary {
-  background-color: var(--app-primary);
-  border-color: var(--app-primary);
-}
-
-.hero-actions .btn-outline-primary {
-  color: var(--app-primary);
-  border-color: var(--app-primary);
-}
-
-/* ---------- ACERCA DEL CREADOR ----------- */
-
-.creator-photo {
-  width: 220px;
-  height: 220px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 4px solid #ffffff;
-  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.12);
-}
-
-.social-links a {
-  margin-right: 0.75rem;
-}
-
-.social-links a.btn-outline-dark {
-  border-radius: 999px;
-}
-
-/* ---------- BUSCADOR ----------- */
-
-.search-card {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 1.8rem 2rem;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-.result-item {
-  padding: 0.9rem 0;
-  border-bottom: 1px solid #edf1f7;
-}
-
-.result-item:last-child {
-  border-bottom: none;
-}
-
-.result-meta {
-  font-size: 0.9rem;
-  color: var(--app-muted);
-}
-
-/* ---------- LOGIN ----------- */
-
-.login-card {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 2rem 2.5rem;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+  padding: 3rem 0 4rem;
 }
 
 .app-footer {
+  border-top: 1px solid var(--surface-border);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.9rem 0;
+}
+
+/* ================== Hero buscador ================== */
+
+.hero-section {
+  margin-top: 0.5rem;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #ffffff, #fef6e4);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 3rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.hero-title {
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.hero-text {
+  font-size: 0.98rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.hero-list {
+  padding-left: 1rem;
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.hero-list li + li {
+  margin-top: 0.25rem;
+}
+
+.badge-score {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.75rem;
+}
+
+/* Panel de búsqueda a la derecha */
+.search-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-lg);
+  padding: 1.8rem 1.8rem 1.5rem;
+  border: 1px solid var(--surface-border);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.search-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.55rem;
+}
+
+.search-btn {
+  font-weight: 600;
+}
+
+/* ================== Resultados ================== */
+
+.results-section {
+  margin-top: 1.5rem;
+}
+
+.results-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.result-card {
+  padding: 0.9rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
+}
+
+.result-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+}
+
+.result-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.15rem 0.75rem;
+  margin: 0;
   font-size: 0.85rem;
-  color: var(--app-muted);
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
+}
+
+.result-meta dt {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.result-meta dd {
+  margin: 0;
+}
+
+/* ================== Acerca de ================== */
+
+.about-hero {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-top: 3.5rem; /* baja la foto respecto al header */
+}
+
+.creator-photo {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.about-title {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.about-body {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-lg);
+  padding: 1.8rem 2.1rem;
+  border: 1px solid var(--surface-border);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
+  font-size: 0.97rem;
+}
+
+.about-links {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* ================== Login ================== */
+
+.login-section {
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: var(--radius-lg);
+  padding: 2.3rem 2.6rem;
+  border: 1px solid var(--surface-border);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.login-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.login-subtitle {
+  font-size: 0.94rem;
+}
+
+.login-admin-hint {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: #fff7e6;
+  color: #92400e;
+  font-size: 0.8rem;
+  border: 1px solid #fed7aa;
+}
+
+/* ================== Responsivo ================== */
+
+@media (max-width: 991.98px) {
+  .hero-card {
+    padding: 1.8rem 1.5rem;
+  }
+
+  .about-body {
+    padding: 1.4rem 1.5rem;
+  }
+
+  .result-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

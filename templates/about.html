@@ -1,50 +1,56 @@
 {% extends "base.html" %}
-
-{% block title %}Acerca del creador · MinMinas · BigData{% endblock %}
+{% set active_page = "about" %}
+{% block title %}Acerca del creador · MinMinas BigData{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="text-center mb-4">
-      <img
-        src="{{ url_for('static', filename='Images/creador.png') }}"
-        alt="Juan Sebastián Mora Zapata"
-        class="creator-photo mb-3"
-      >
-      <h1 class="mb-3">Acerca del creador</h1>
-    </div>
+<section class="about-hero">
+  <div class="text-center">
+    <img
+      src="{{ url_for('static', filename='img/juan_mora.jpg') }}"
+      alt="Foto del creador"
+      class="creator-photo rounded-circle shadow-sm"
+    />
+    <h1 class="about-title mt-3">Acerca del creador</h1>
+  </div>
 
-    <p class="lead">
-      <strong>Juan Sebastián Mora Zapata</strong>, estudiante de Maestría en Analítica
-      de Datos y profesional en transformación digital, desarrolla esta solución como
-      proyecto de Big Data aplicada a la normatividad de MinMinas.
+  <div class="about-body mx-auto mt-4">
+    <p>
+      <strong>Juan Sebastián Mora Zapata</strong>, estudiante de Maestría en
+      Analítica de Datos y profesional en transformación digital, desarrolla
+      esta solución como proyecto de Big Data aplicada a la normatividad de
+      MinMinas.
     </p>
 
     <p>
-      La aplicación integra <strong>MongoDB Atlas</strong> para la gestión de documentos
-      normativos, <strong>Elasticsearch</strong> para el buscador y
+      La aplicación integra <strong>MongoDB Atlas</strong> para la gestión de
+      documentos normativos, <strong>Elasticsearch</strong> para el buscador y
       <strong>Flask</strong> como framework web.
     </p>
 
     <p>
-      El objetivo es facilitar la consulta de normatividad y sentar las bases para
-      analítica avanzada sobre el marco regulatorio del sector minero-energético.
+      El objetivo es facilitar la consulta de normatividad y sentar las bases
+      para analítica avanzada sobre el marco regulatorio del sector minero-energético.
     </p>
 
-    <h5 class="mt-4 mb-3">Conecta conmigo:</h5>
-    <div class="social-links mb-4">
-      <a class="btn btn-outline-dark"
-         href="https://www.linkedin.com/in/juanmora-data-analytics"
-         target="_blank" rel="noopener">
+    <h2 class="h6 mt-4 mb-2">Conecta conmigo:</h2>
+    <div class="about-links">
+      <a
+        class="btn btn-outline-primary rounded-pill px-3"
+        href="https://www.linkedin.com/"
+        target="_blank"
+        rel="noopener"
+      >
         LinkedIn
       </a>
-
-      <a class="btn btn-outline-dark"
-         href="https://github.com/Juanmora0314"
-         target="_blank" rel="noopener">
+      <a
+        class="btn btn-outline-secondary rounded-pill px-3"
+        href="https://github.com/Juanmora0314"
+        target="_blank"
+        rel="noopener"
+      >
         GitHub
       </a>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}

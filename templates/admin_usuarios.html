@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Administración de usuarios{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">Usuarios registrados</h1>
+
+  <p class="text-muted">
+    Solo los administradores pueden acceder a esta sección.
+  </p>
+
+  <div class="mb-3">
+    <a href="{{ url_for('admin_crear_usuario') }}" class="btn btn-primary">
+      + Crear nuevo usuario
+    </a>
+  </div>
+
+  {% if usuarios %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Último acceso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in usuarios %}
+            <tr>
+              <td>{{ u.username }}</td>
+              <td>{{ u.email }}</td>
+              <td>
+                {% if u.rol %}
+                  <span class="badge bg-secondary">{{ u.rol }}</span>
+                {% else %}
+                  <span class="badge bg-light text-muted">sin rol</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.activo is defined and u.activo %}
+                  <span class="badge bg-success">Activo</span>
+                {% else %}
+                  <span class="badge bg-danger">Inactivo</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.ultimo_acceso is defined and u.ultimo_acceso %}
+                  {{ u.ultimo_acceso }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">Todavía no hay usuarios registrados en la base de datos.</p>
+  {% endif %}
+</div>
+{% endblock %}

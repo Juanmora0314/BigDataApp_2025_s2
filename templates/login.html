@@ -1,54 +1,84 @@
 {% extends "base.html" %}
-
-{% block title %}Ingresar · MinMinas · BigData{% endblock %}
+{% set active_page = "login" %}
+{% block title %}Ingresar · MinMinas BigData{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-6">
-    <div class="login-card">
-      <h1 class="mb-3 text-center">Iniciar sesión</h1>
-      <p class="text-muted text-center mb-4">
-        Accede al panel de administración y al buscador avanzado de normatividad del
-        Ministerio de Minas y Energía.
+<section class="login-section">
+  <div class="login-card mx-auto">
+    <h1 class="login-title text-center mb-2">Iniciar sesión</h1>
+    <p class="login-subtitle text-center text-muted mb-4">
+      Accede al panel de administración y al buscador avanzado de normatividad
+      del Ministerio de Minas y Energía.
+    </p>
+
+    {% if mensaje %}
+      <div class="alert alert-warning small">{{ mensaje }}</div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('login') }}">
+      <div class="mb-3">
+        <label for="usuario" class="form-label">Usuario o correo</label>
+        <input
+          type="text"
+          class="form-control"
+          id="usuario"
+          name="usuario"
+          placeholder="juan.mora / juan@example.com"
+          required
+        />
+      </div>
+
+      <div class="mb-1">
+        <label for="password" class="form-label">Contraseña</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          name="password"
+          required
+        />
+      </div>
+
+      <p class="form-text text-muted mb-3">
+        Tus credenciales se procesan de forma segura.
       </p>
 
-      <form method="post">
-        <div class="mb-3">
-          <label class="form-label">Usuario o correo</label>
-          <input
-            type="text"
-            class="form-control"
-            name="username"
-            placeholder="juan.mora / juan@example.com"
-            required
-          >
-        </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg">Ingresar</button>
+      </div>
+    </form>
 
-        <div class="mb-3">
-          <label class="form-label">Contraseña</label>
-          <input
-            type="password"
-            class="form-control"
-            name="password"
-            required
-          >
-        </div>
-
-        <p class="text-muted small">
-          Tus credenciales se procesan de forma segura.
-        </p>
-
-        <div class="d-flex justify-content-between align-items-center mt-3">
-          <button type="submit" class="btn btn-primary">
-            Ingresar
-          </button>
-
-          <a href="{{ url_for('panel_usuarios') }}" class="btn btn-outline-secondary">
-            Ver usuarios registrados
-          </a>
-        </div>
-      </form>
+    <div class="d-flex justify-content-center gap-3 mt-4">
+      {% if es_admin %}
+        <a
+          href="{{ url_for('listar_usuarios') }}"
+          class="btn btn-outline-secondary btn-sm"
+        >
+          Ver usuarios registrados
+        </a>
+        <a
+          href="{{ url_for('crear_usuario') }}"
+          class="btn btn-outline-primary btn-sm"
+        >
+          Crear nuevo usuario
+        </a>
+      {% else %}
+        <button class="btn btn-outline-secondary btn-sm" type="button" disabled>
+          Ver usuarios registrados
+        </button>
+        <button class="btn btn-outline-primary btn-sm" type="button" disabled>
+          Crear nuevo usuario
+        </button>
+      {% endif %}
     </div>
+
+    {% if not es_admin %}
+      <div class="text-center mt-3">
+        <span class="login-admin-hint">
+          Debes ingresar como administrador para ver y gestionar usuarios.
+        </span>
+      </div>
+    {% endif %}
   </div>
-</div>
+</section>
 {% endblock %}
