@@ -1,5 +1,4 @@
 import os
-
 from flask import (
     Flask,
     render_template,
@@ -10,59 +9,61 @@ from flask import (
     session,
 )
 from pymongo import MongoClient
-from werkzeug.security import check_password_hash
 from elasticsearch import Elasticsearch
-from dotenv import load_dotenv
+from passlib.hash import bcrypt
 
-# =====================================
-# Cargar variables de entorno
-# =====================================
-load_dotenv()
+# -----------------------------------------------------------------------------
+# Configuración básica de Flask
+# -----------------------------------------------------------------------------
+app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-minminas-2025")
 
+# -----------------------------------------------------------------------------
+# MongoDB
+# -----------------------------------------------------------------------------
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB", "minminas_app")
-MONGO_COLECCION = os.getenv("MONGO_COLECCION", "usuarios")
 
-ES_HOST = os.getenv("ES_HOST", "http://localhost:9200")
-ES_USER = os.getenv("ES_USER")
-ES_PASS = os.getenv("ES_PASS")
-ES_INDEX = os.getenv("ES_INDEX", "normatividad_minminas")
-
-# =====================================
-# Flask
-# =====================================
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-cambia-esto")
-
-
-# =====================================
-# Conexión MongoDB
-# =====================================
-mongo_client = MongoClient(MONGO_URI)
-db = mongo_client[MONGO_DB]
-usuarios_col = db[MONGO_COLECCION]
-print(f"[OK] MongoDB conectado a {MONGO_DB} / colección {MONGO_COLECCION}")
-
-
-# =====================================
-# Conexión Elasticsearch
-# =====================================
-if ES_USER and ES_PASS:
-    es = Elasticsearch(ES_HOST, basic_auth=(ES_USER, ES_PASS), verify_certs=True)
-else:
-    es = Elasticsearch(ES_HOST, verify_certs=True)
+if not MONGO_URI:
+    raise RuntimeError("Falta la variable de entorno MONGO_URI")
 
 try:
-    info = es.info()
-    cluster_name = info.get("cluster_name", "OK")
-    print(f"[OK] Elasticsearch conectado: {cluster_name}")
+    mongo_client = MongoClient(MONGO_URI)
+    db = mongo_client[MONGO_DB]
+    usuarios_col = db["usuarios"]
+    print("[OK] MongoDB conectado a minminas_app / colección usuarios")
 except Exception as e:
+    print("[ERROR] No se pudo conectar a MongoDB:", e)
+    usuarios_col = None
+
+# -----------------------------------------------------------------------------
+# Elasticsearch – usa tu clúster de Elastic Cloud
+# -----------------------------------------------------------------------------
+# 👉 Si quieres, pon estas dos cosas en variables de entorno ES_URL y ES_API_KEY.
+ES_URL = os.getenv(
+    "ES_URL",
+    "https://f5a223ee7900463db5fdfe34f348f883.us-central1.gcp.cloud.es.io:443",
+)
+ES_API_KEY = os.getenv(
+    "ES_API_KEY",
+    "RThQXzY1b0JRd3FzdUVaQXU3aHk6RC1Kc2lhcmp1UFVkcllWdy0tLVZMQQ==",
+)
+
+# Nombre del índice (ajústalo al que usaste al cargar los datos)
+ES_INDEX = os.getenv("ES_INDEX", "minminas_normas")
+
+es = None
+try:
+    es = Elasticsearch(ES_URL, api_key=ES_API_KEY)
+    info = es.info()
+    print(f"[OK] Elasticsearch conectado: {info.get('cluster_name', 'cluster')}")
+except Exception as e:
+    es = None
     print("[ERROR] No se pudo conectar a Elasticsearch:", e)
 
-
-# =====================================
-# RUTA PRINCIPAL: buscador
-# =====================================
+# -----------------------------------------------------------------------------
+# Rutas
+# -----------------------------------------------------------------------------
 @app.route("/", methods=["GET"])
 def home():
     q = request.args.get("q", "").strip()
@@ -70,119 +71,113 @@ def home():
     total = 0
 
     if q:
-        # Consulta de texto completo
-        es_query = {
-            "multi_match": {
-                "query": q,
-                "fields": [
-                    "titulo^3",
-                    "titulo_norma^3",
-                    "resumen^2",
-                    "texto",
-                ],
-            }
-        }
-
-        resp = es.search(index=ES_INDEX, query=es_query, size=30)
-        total = resp["hits"]["total"]["value"]
-
-        for hit in resp["hits"]["hits"]:
-            src = hit.get("_source", {}) or {}
-
-            # 🔎 Ajusta aquí los nombres de campos reales de tu índice
-            titulo = (
-                src.get("titulo")
-                or src.get("titulo_norma")
-                or src.get("title")
-                or "Sin título"
+        if es is None:
+            flash(
+                "El buscador no está disponible en este momento "
+                "(sin conexión a Elasticsearch).",
+                "warning",
             )
-
-            entidad = (
-                src.get("entidad")
-                or src.get("entidad_emisora")
-                or src.get("entity")
-                or "N/D"
-            )
-
-            anio = src.get("anio") or src.get("ano") or src.get("year") or "N/D"
-
-            tipo = src.get("tipo") or src.get("tipo_norma") or src.get("type") or "N/D"
-
-            resultados.append(
-                {
-                    "titulo": titulo,
-                    "entidad": entidad,
-                    "anio": anio,
-                    "tipo": tipo,
-                    "score": round(hit.get("_score", 0.0), 2),
+        else:
+            es_query = {
+                "multi_match": {
+                    "query": q,
+                    "fields": [
+                        "titulo^3",
+                        "tema^2",
+                        "descripcion",
+                        "entidad",
+                        "tipo_norma",
+                    ],
                 }
-            )
+            }
+            try:
+                resp = es.search(index=ES_INDEX, query=es_query, size=30)
+                total = resp["hits"]["total"]["value"]
+                for h in resp["hits"]["hits"]:
+                    src = h["_source"]
+                    resultados.append(
+                        {
+                            "titulo": src.get("titulo"),
+                            "entidad": src.get("entidad"),
+                            "anio": src.get("anio"),
+                            "tipo_norma": src.get("tipo_norma"),
+                            "url": src.get("url_pdf") or src.get("url"),
+                            "score": round(h["_score"], 2),
+                        }
+                    )
+            except Exception as e:
+                app.logger.error(f"Error al buscar en Elasticsearch: {e}")
+                flash(
+                    "Hubo un error al consultar el buscador. "
+                    "Intenta de nuevo más tarde.",
+                    "danger",
+                )
 
-    return render_template("index.html", q=q, resultados=resultados, total=total)
+    return render_template(
+        "home.html",
+        active="home",
+        query=q,
+        resultados=resultados,
+        total=total,
+    )
 
 
-# =====================================
-# ACERCA DE
-# =====================================
 @app.route("/about")
 def about():
-    return render_template("about.html")
+    return render_template("about.html", active="about")
 
 
-# =====================================
-# LOGIN
-# =====================================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        # name="login" y name="password" en el formulario
-        login_input = (request.form.get("login") or "").strip()
-        password = (request.form.get("password") or "").strip()
+        username_or_email = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
 
-        if not login_input or not password:
-            flash("Debes ingresar usuario/correo y contraseña.", "danger")
-            return render_template("login.html")
+        # Búsqueda por usuario o correo
+        user = None
+        if usuarios_col is not None and username_or_email:
+            user = usuarios_col.find_one(
+                {
+                    "$or": [
+                        {"username": username_or_email},
+                        {"correo": username_or_email},
+                    ]
+                }
+            )
 
-        # Buscar por username o por email
-        user = usuarios_col.find_one(
-            {"$or": [{"username": login_input}, {"email": login_input}]}
+        # IMPORTANTE:
+        # Ajusta el campo de contraseña según lo que tengas en Mongo:
+        # 1) Si guardaste hash bcrypt en "password_hash", deja bcrypt.verify.
+        # 2) Si guardaste texto plano en "password", cambia a (user["password"] == password).
+        cred_ok = False
+        if user:
+            if "password_hash" in user:
+                cred_ok = bcrypt.verify(password, user["password_hash"])
+            elif "password" in user:
+                cred_ok = user["password"] == password
+
+        if user and cred_ok:
+            session["user_id"] = str(user["_id"])
+            session["user_name"] = user.get("nombre") or user.get("username")
+            flash(f"Bienvenido, {session['user_name']}.", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("Usuario o contraseña incorrectos.", "danger")
+
+    # Listado de usuarios para mostrar en pantalla (solo lectura)
+    usuarios = []
+    if usuarios_col is not None:
+        usuarios = list(
+            usuarios_col.find(
+                {}, {"_id": 0, "nombre": 1, "username": 1, "correo": 1, "rol": 1}
+            ).sort("nombre", 1)
         )
 
-        if not user:
-            flash("Usuario o contraseña incorrectos.", "danger")
-            return render_template("login.html")
-
-        if not check_password_hash(user["password"], password):
-            flash("Usuario o contraseña incorrectos.", "danger")
-            return render_template("login.html")
-
-        # Login correcto
-        session.clear()
-        session["user_id"] = str(user["_id"])
-        session["username"] = user.get("username")
-        session["rol"] = user.get("rol", "usuario")
-
-        flash(f"Bienvenido, {user.get('username')}", "success")
-        # Por ahora, después de loguear volvemos al buscador
-        return redirect(url_for("home"))
-
-    # GET
-    return render_template("login.html")
+    return render_template("login.html", active="login", usuarios=usuarios)
 
 
-# =====================================
-# LOGOUT
-# =====================================
-@app.route("/logout")
-def logout():
-    session.clear()
-    flash("Sesión cerrada correctamente.", "info")
-    return redirect(url_for("home"))
-
-
-# =====================================
-# MAIN (solo local)
-# =====================================
+# -----------------------------------------------------------------------------
+# Main (para correr localmente)
+# -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    # En Render no usa debug, pero local sí
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True)

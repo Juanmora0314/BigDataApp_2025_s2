@@ -1,41 +1,50 @@
 {% extends "base.html" %}
-{% block title %}Acerca de · Buscador MinMinas{% endblock %}
 
 {% block content %}
 <section class="about-hero text-center">
   <img
-    class="about-photo"
     src="{{ url_for('static', filename='img/foto_creador.jpg') }}"
     alt="Foto del creador"
+    class="about-photo mb-3"
   />
 
-  <h1 class="about-title mb-3">Hola, soy Juan Sebastián Mora.</h1>
+  <h1 class="display-6 fw-bold mb-3">Hola, soy Juan Sebastián Mora.</h1>
 
-  <div class="about-body text-start mx-auto">
-    <p>
-      Este buscador es un prototipo académico desarrollado en la Maestría en
-      Analítica de Datos. Integra scraping, MongoDB Atlas y Elasticsearch para
-      explorar la normatividad minera y energética de Colombia.
-    </p>
-    <p>
-      La idea es acercar el marco regulatorio a analistas, estudiantes y
-      tomadores de decisión que necesitan consultar normas de forma rápida y
-      flexible.
-    </p>
+  <p class="lead text-muted mb-3">
+    Este buscador es un prototipo académico desarrollado en la Maestría en
+    Analítica de Datos. Integra scraping, MongoDB Atlas y Elasticsearch para
+    explorar la normatividad minera y energética de Colombia.
+  </p>
 
-    <div class="about-links">
-      <a
-        href="mailto:juan.sebastian.mora.zapata@example.com"
-        class="btn btn-outline-primary btn-sm"
-        >📧 Contacto</a
-      >
-      <a
-        href="https://github.com/Juanmora0314/BigDataApp_2025_s2"
-        target="_blank"
-        class="btn btn-outline-secondary btn-sm"
-        >🐙 Ver repositorio</a
-      >
-    </div>
+  <p class="text-muted mb-4">
+    La idea es acercar el marco regulatorio a analistas, estudiantes y tomadores
+    de decisión que necesitan consultar normas de forma rápida y flexible.
+  </p>
+
+  <div class="d-flex justify-content-center gap-3 mb-4 flex-wrap">
+    <a href="mailto:TU_CORREO_AQUI" class="btn btn-outline-primary">
+      📩 Contacto
+    </a>
+    <a
+      href="https://github.com/Juanmora0314/BigDataApp_2025_s2"
+      class="btn btn-outline-secondary"
+      target="_blank"
+      rel="noopener"
+    >
+      🐙 Ver repositorio
+    </a>
+    <a
+      href="https://www.linkedin.com/in/TU-LINKEDIN-AQUI/"
+      class="btn btn-outline-secondary"
+      target="_blank"
+      rel="noopener"
+    >
+      🔗 LinkedIn
+    </a>
   </div>
+
+  <p class="text-muted small">
+    Trabajo académico · Maestría en Analítica de Datos · 2025
+  </p>
 </section>
 {% endblock %}

@@ -1,298 +1,51 @@
-/* ================== Variables ================== */
-:root {
-  --bg-gradient-start: #fef3c7;
-  --bg-gradient-mid: #f4f5fb;
-  --bg-gradient-end: #e0f2fe;
-
-  --primary: #0057b8;
-  --primary-soft: #e6f0ff;
-  --accent: #f59e0b;
-
-  --text-main: #111827;
-  --text-muted: #6b7280;
-
-  --surface: #ffffff;
-  --surface-soft: #f9fafb;
-  --surface-border: #e5e7eb;
-
-  --radius-lg: 20px;
+/* Estilos generales */
+body {
+  background-color: #f5f7fb;
 }
 
-/* ================== Layout general ================== */
-
-body.app-body {
-  min-height: 100vh;
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: var(--text-main);
-  background: radial-gradient(
-    circle at top left,
-    var(--bg-gradient-start) 0,
-    var(--bg-gradient-mid) 45%,
-    var(--bg-gradient-end) 100%
-  );
+/* Contenedor principal */
+main .container {
+  max-width: 1100px;
 }
 
-.app-topbar {
-  height: 4px;
-  background: linear-gradient(90deg, #f97316, #22c55e, #3b82f6);
-}
-
-.app-navbar {
-  background-color: var(--surface);
-}
-
-.app-navbar .navbar-brand {
-  font-size: 1.15rem;
-}
-
-.brand-dot {
-  color: var(--accent);
-}
-
-.app-navbar .nav-link {
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-.app-navbar .nav-link.active {
-  color: var(--primary);
-  position: relative;
-}
-
-.app-navbar .nav-link.active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.2rem;
-  margin-inline: auto;
-  width: 18px;
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), var(--primary));
-}
-
-.app-main {
-  padding: 3rem 0 4rem;
-}
-
-.app-footer {
-  border-top: 1px solid var(--surface-border);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0.9rem 0;
-}
-
-/* ================== Hero buscador ================== */
-
-.hero-section {
-  margin-top: 0.5rem;
-}
-
-.hero-card {
-  background: linear-gradient(135deg, #ffffff, #fef6e4);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem 3rem;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-}
-
-.hero-title {
-  font-size: 2.1rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-}
-
-.hero-text {
-  font-size: 0.98rem;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-
-.hero-list {
-  padding-left: 1rem;
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--text-main);
-}
-
-.hero-list li + li {
-  margin-top: 0.25rem;
-}
-
-.badge-score {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.1rem 0.55rem;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  color: var(--primary);
-  font-size: 0.75rem;
-}
-
-/* Panel de búsqueda a la derecha */
-.search-panel {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: var(--radius-lg);
-  padding: 1.8rem 1.8rem 1.5rem;
-  border: 1px solid var(--surface-border);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
-}
-
-.search-label {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-bottom: 0.55rem;
-}
-
-.search-btn {
+/* Navbar */
+.navbar-brand {
   font-weight: 600;
 }
 
-/* ================== Resultados ================== */
-
-.results-section {
-  margin-top: 1.5rem;
-}
-
-/* NUEVA GRID DE RESULTADOS, que usas en buscador.html */
-.result-grid {
-  margin-top: 1.5rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-}
-
-.result-card {
-  padding: 1.25rem 1.5rem;
-  border-radius: 16px;
+/* Tarjeta de búsqueda */
+.search-card {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(15, 76, 129, 0.08);
 }
 
-.result-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.3rem;
-}
-
-.result-meta {
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem 1.5rem;
-}
-
-.result-meta dt {
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #6b7280;
-  margin-bottom: 0.1rem;
-}
-
-.result-meta dd {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-/* ================== Acerca de ================== */
-
+/* About */
 .about-hero {
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
-  padding-top: 3.5rem; /* baja la foto respecto al header */
 }
 
-/* si en about.html usas class="about-photo" */
 .about-photo {
-  display: block;
-  margin: 5rem auto 1.5rem auto; /* baja la foto para que no choque con el header */
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
-}
-
-/* si quedó alguna referencia vieja a .creator-photo, esto sigue funcionando igual */
-.creator-photo {
-  width: 170px;
-  height: 170px;
-  object-fit: cover;
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.about-title {
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.about-body {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-lg);
-  padding: 1.8rem 2.1rem;
-  border: 1px solid var(--surface-border);
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
-  font-size: 0.97rem;
-}
-
-.about-links {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-/* ================== Login ================== */
-
-.login-section {
-  max-width: 540px;
-  margin: 0 auto;
-}
-
-.login-card {
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: var(--radius-lg);
-  padding: 2.3rem 2.6rem;
-  border: 1px solid var(--surface-border);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-}
-
-.login-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.login-subtitle {
-  font-size: 0.94rem;
-}
-
-.login-admin-hint {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.4rem 1rem;
+  width: 120px;
+  height: 120px;
   border-radius: 999px;
-  background: #fff7e6;
-  color: #92400e;
-  font-size: 0.8rem;
-  border: 1px solid #fed7aa;
+  object-fit: cover;
+  border: 4px solid #e5eef9;
 }
 
-/* ================== Responsivo ================== */
+/* Tablas */
+table.table > thead {
+  background: #f1f4fb;
+}
 
-@media (max-width: 991.98px) {
-  .hero-card {
-    padding: 1.8rem 1.5rem;
-  }
+/* Botones */
+.btn-primary {
+  background: #0d6efd;
+  border-color: #0d6efd;
+}
 
-  .about-body {
-    padding: 1.4rem 1.5rem;
-  }
-
-  .result-meta {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.btn-primary:hover {
+  background: #0b60df;
+  border-color: #0b60df;
 }

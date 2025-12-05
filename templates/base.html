@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <title>{% block title %}Buscador MinMinas{% endblock %}</title>
+    <title>Marco regulatorio · MinMinas</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Bootstrap -->
@@ -11,87 +11,74 @@
       rel="stylesheet"
     />
 
-    <!-- Tu CSS -->
+    <!-- Estilos propios -->
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/landingPage.css') }}"
     />
   </head>
-  <body class="app-body">
-    <div class="app-topbar"></div>
-
-    <nav class="navbar navbar-expand-lg app-navbar shadow-sm">
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
       <div class="container">
-        <a class="navbar-brand fw-semibold" href="{{ url_for('home') }}">
-          Marco regulatorio <span class="brand-dot">·</span> MinMinas
+        <a class="navbar-brand" href="{{ url_for('home') }}">
+          Marco regulatorio · MinMinas
         </a>
 
         <button
           class="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarMain"
-          aria-controls="navbarMain"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
+          data-bs-target="#mainNav"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarMain">
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto">
             <li class="nav-item">
               <a
-                class="nav-link {% if request.path == '/' %}active{% endif %}"
+                class="nav-link {% if active == 'home' %}active{% endif %}"
                 href="{{ url_for('home') }}"
                 >Buscador</a
               >
             </li>
             <li class="nav-item">
               <a
-                class="nav-link {% if request.path == '/about' %}active{% endif %}"
+                class="nav-link {% if active == 'about' %}active{% endif %}"
                 href="{{ url_for('about') }}"
                 >Acerca de</a
               >
             </li>
             <li class="nav-item">
-              {% if session.get("username") %}
-              <a class="nav-link" href="{{ url_for('logout') }}"
-                >Salir ({{ session["username"] }})</a
-              >
-              {% else %}
               <a
-                class="nav-link {% if request.path == '/login' %}active{% endif %}"
+                class="nav-link {% if active == 'login' %}active{% endif %}"
                 href="{{ url_for('login') }}"
                 >Login</a
               >
-              {% endif %}
             </li>
           </ul>
         </div>
       </div>
     </nav>
 
-    <main class="app-main">
+    <main class="py-5">
       <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="mb-3">
-          {% for category, message in messages %}
-          <div
-            class="alert alert-{{ 'info' if category=='message' else category }} alert-dismissible fade show"
-            role="alert"
-          >
-            {{ message }}
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
-          </div>
-          {% endfor %}
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show"
+          role="alert"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Cerrar"
+          ></button>
         </div>
+        {% endfor %}
         {% endif %}
         {% endwith %}
 
@@ -99,10 +86,8 @@
       </div>
     </main>
 
-    <footer class="app-footer">
-      <div class="container text-center small text-muted">
-        Trabajo académico · Maestría en Analítica de Datos · 2025
-      </div>
+    <footer class="border-top py-3 text-center small text-muted">
+      Trabajo académico · Maestría en Analítica de Datos · 2025
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

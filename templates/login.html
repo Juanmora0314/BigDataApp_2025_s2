@@ -1,45 +1,83 @@
 {% extends "base.html" %}
-{% block title %}Login · Buscador MinMinas{% endblock %}
 
 {% block content %}
-<section class="login-section">
-  <div class="login-card">
-    <h1 class="login-title mb-2">Ingreso para administración</h1>
-    <p class="login-subtitle text-muted mb-3">
-      Usa tu usuario registrado. Para pruebas del proyecto puedes utilizar el
-      usuario administrador.
-    </p>
+<h1 class="h2 fw-bold mb-3">Ingreso para administración</h1>
 
-    <div class="login-admin-hint mb-3">
-      Usuario: <strong class="ms-1 me-3">admin</strong> Contraseña:
-      <strong>Admin123*</strong>
-    </div>
+<p class="text-muted mb-4">
+  Usa tu usuario registrado para acceder a las funciones de administración del
+  prototipo. La autenticación se valida contra la colección
+  <code>usuarios</code> de MongoDB.
+</p>
 
-    <form method="post" action="{{ url_for('login') }}">
-      <div class="mb-3">
-        <label class="form-label">Usuario o correo</label>
-        <input
-          type="text"
-          class="form-control"
-          name="login"
-          autocomplete="username"
-          required
-        />
+<div class="row g-4">
+  <div class="col-md-6">
+    <form
+      method="post"
+      class="card shadow-sm border-0 rounded-4"
+      autocomplete="off"
+    >
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label" for="username">Usuario o correo</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            name="username"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="password">Contraseña</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required
+          />
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Entrar</button>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Contraseña</label>
-        <input
-          type="password"
-          class="form-control"
-          name="password"
-          autocomplete="current-password"
-          required
-        />
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100">Entrar</button>
     </form>
   </div>
-</section>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body">
+        <h2 class="h6 fw-semibold mb-3">
+          Usuarios registrados (solo lectura)
+        </h2>
+
+        {% if usuarios %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in usuarios %}
+              <tr>
+                <td>{{ u.nombre or u.username }}</td>
+                <td>{{ u.correo }}</td>
+                <td>{{ u.rol or 'usuario' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">
+          Aún no hay usuarios cargados en la colección
+          <code>usuarios</code>.
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<span class="badge bg-light text-muted mb-2">Beta · 2025</span>
+
+<div class="row align-items-start">
+  <div class="col-lg-7">
+    <h1 class="display-5 fw-bold mb-3">
+      Normatividad minera y energética,<br />
+      buscada como en 2025.
+    </h1>
+    <p class="lead text-muted">
+      Escribe palabras clave relacionadas con la norma que deseas consultar. El
+      buscador combina Big Data, Elasticsearch y MongoDB Atlas para entregarte
+      resultados relevantes del marco regulatorio del sector minero-energético.
+    </p>
+    <ul class="text-muted">
+      <li>Búsqueda por tema, entidad, año o tipo de norma.</li>
+      <li>Priorización por relevancia (score de Elasticsearch).</li>
+      <li>
+        Base lista para analítica avanzada y modelos de recomendación.
+      </li>
+    </ul>
+  </div>
+
+  <div class="col-lg-5">
+    <form
+      class="search-card p-4 shadow-sm rounded-4"
+      method="get"
+      action="{{ url_for('home') }}"
+    >
+      <label class="form-label fw-semibold" for="q">
+        Escribe una o varias palabras clave
+      </label>
+      <div class="input-group mb-2">
+        <input
+          type="text"
+          class="form-control"
+          id="q"
+          name="q"
+          value="{{ query or '' }}"
+          placeholder="regalías, licencias ambientales, transición energética..."
+        />
+        <button class="btn btn-primary" type="submit">🔍 Buscar</button>
+      </div>
+      <div class="form-text">
+        Ejemplo: "regalías", "pólizas mineras", "transición energética".
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if query %}
+<hr class="my-4" />
+
+<h2 class="h5 mb-3">
+  Resultados para
+  "<span class="fw-semibold">{{ query }}</span>"
+  {% if total %}
+  <span class="text-muted">· {{ total }} normas encontradas</span>
+  {% endif %}
+</h2>
+
+{% if resultados %}
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Entidad</th>
+        <th>Año</th>
+        <th>Tipo</th>
+        <th class="text-end">Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in resultados %}
+      <tr>
+        <td>
+          {% if r.url %}
+          <a href="{{ r.url }}" target="_blank" rel="noopener">
+            {{ r.titulo }}
+          </a>
+          {% else %}
+          {{ r.titulo }}
+          {% endif %}
+        </td>
+        <td>{{ r.entidad }}</td>
+        <td>{{ r.anio }}</td>
+        <td>{{ r.tipo_norma }}</td>
+        <td class="text-end">
+          <span class="badge bg-light text-muted">{{ r.score }}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-muted">No se encontraron normas para esta búsqueda.</p>
+{% endif %} {% endif %}
+{% endblock %}
