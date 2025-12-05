@@ -1,39 +1,96 @@
 {% extends "base.html" %}
-
-{% block title %}MinMinas · BigData{% endblock %}
+{% block title %}Buscador MinMinas{% endblock %}
 
 {% block content %}
-<main class="container my-5">
-  <section class="row align-items-center">
-    <div class="col-lg-8">
-      <h1 class="display-5 fw-bold mb-3">
+<div class="row gy-4 align-items-start hero-section">
+  <div class="col-lg-7">
+    <div class="hero-card">
+      <span class="badge-score mb-2">Beta · 2025</span>
+      <h1 class="hero-title">
         Normatividad minera y energética, buscada como en 2025.
       </h1>
-
-      <p class="lead">
-        Esta aplicación combina Big Data, Elasticsearch y MongoDB Atlas para
-        entregarte resultados relevantes del marco regulatorio del Ministerio de Minas
-        y Energía.
+      <p class="hero-text">
+        Escribe palabras clave relacionadas con la norma que deseas consultar.
+        El buscador combina Big Data, Elasticsearch y MongoDB Atlas para
+        entregarte resultados relevantes del marco regulatorio del sector
+        minero-energético.
       </p>
-
-      <ul class="mt-3">
+      <ul class="hero-list">
         <li>Búsqueda por tema, entidad, año o tipo de norma.</li>
-        <li>Priorización por relevancia (score Elasticsearch).</li>
-        <li>
-          Base lista para analítica avanzada y modelos de recomendación.
-        </li>
+        <li>Priorización por relevancia (score de Elasticsearch).</li>
+        <li>Base lista para analítica avanzada y modelos de recomendación.</li>
       </ul>
-
-      <div class="mt-4">
-        <a href="{{ url_for('buscador') }}" class="btn btn-primary btn-lg">
-          Ir al buscador
-        </a>
-      </div>
-
-      <p class="text-muted mt-4 small">
-        Desarrollado por Juan Sebastián Mora Zapata · Proyecto BigData 2025
-      </p>
     </div>
-  </section>
-</main>
-{% endblock %}
+  </div>
+
+  <div class="col-lg-5">
+    <div class="search-panel">
+      <form
+        method="get"
+        action="{{ url_for('home') }}"
+        class="d-flex flex-column gap-3"
+      >
+        <div>
+          <div class="search-label">Escribe una o varias palabras clave</div>
+          <input
+            type="text"
+            class="form-control form-control-lg"
+            name="q"
+            placeholder="regalías, licencias ambientales, transición energética..."
+            value="{{ q }}"
+          />
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          {% if q %}
+          <small class="text-muted">
+            Resultados para:
+            <strong>"{{ q }}"</strong> · {{ total }} documento(s)
+          </small>
+          {% else %}
+          <small class="text-muted">
+            Ejemplo: "regalías", "pólizas mineras", "transición energética".
+          </small>
+          {% endif %}
+          <button class="btn btn-primary search-btn" type="submit">
+            🔍 Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if resultados %}
+<section class="results-section">
+  <div class="results-grid">
+    {% for r in resultados %}
+    <article class="result-card">
+      <h2 class="result-title">{{ r.titulo }}</h2>
+      <dl class="result-meta">
+        <div>
+          <dt>Entidad</dt>
+          <dd>{{ r.entidad }}</dd>
+        </div>
+        <div>
+          <dt>Año</dt>
+          <dd>{{ r.anio }}</dd>
+        </div>
+        <div>
+          <dt>Tipo</dt>
+          <dd>{{ r.tipo }}</dd>
+        </div>
+        <div>
+          <dt>score</dt>
+          <dd>{{ r.score }}</dd>
+        </div>
+      </dl>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% elif q %}
+<p class="mt-4 text-muted">
+  No se encontraron resultados para "<strong>{{ q }}</strong>".
+</p>
+{% endif %} {% endblock %}

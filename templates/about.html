@@ -1,58 +1,41 @@
 {% extends "base.html" %}
-
-{% block title %}Acerca del creador · MinMinas BigData{% endblock %}
+{% block title %}Acerca de · Buscador MinMinas{% endblock %}
 
 {% block content %}
-<main class="container my-5">
-  <section class="text-center">
-    <img
-      src="{{ url_for('static', filename='Images/creador.png') }}"
-      alt="Foto del creador"
-      class="about-photo mb-4"
-    />
+<section class="about-hero text-center">
+  <img
+    class="about-photo"
+    src="{{ url_for('static', filename='img/foto_creador.jpg') }}"
+    alt="Foto del creador"
+  />
 
-    <h1 class="mb-4">Acerca del creador</h1>
+  <h1 class="about-title mb-3">Hola, soy Juan Sebastián Mora.</h1>
 
-    <p class="lead">
-      <strong>Juan Sebastián Mora Zapata</strong>, estudiante de Maestría en
-      Analítica de Datos y profesional en transformación digital, desarrolla
-      esta solución como proyecto de Big Data aplicada a la normatividad de
-      MinMinas.
+  <div class="about-body text-start mx-auto">
+    <p>
+      Este buscador es un prototipo académico desarrollado en la Maestría en
+      Analítica de Datos. Integra scraping, MongoDB Atlas y Elasticsearch para
+      explorar la normatividad minera y energética de Colombia.
+    </p>
+    <p>
+      La idea es acercar el marco regulatorio a analistas, estudiantes y
+      tomadores de decisión que necesitan consultar normas de forma rápida y
+      flexible.
     </p>
 
-    <p class="mt-3">
-      La aplicación integra <strong>MongoDB Atlas</strong> para la gestión de
-      documentos normativos, <strong>Elasticsearch</strong> para el buscador y
-      <strong>Flask</strong> como framework web.
-    </p>
-
-    <p class="mt-3">
-      El objetivo es facilitar la consulta de normatividad y sentar las bases
-      para analítica avanzada sobre el marco regulatorio del sector
-      minero-energético.
-    </p>
-
-    <div class="mt-4">
-      <h2 class="h5 mb-3">Conecta conmigo:</h2>
+    <div class="about-links">
       <a
-        class="btn btn-outline-primary me-2"
-        href="https://www.linkedin.com/in/juan-sebastian-mora-zapata"
-        target="_blank"
+        href="mailto:juan.sebastian.mora.zapata@example.com"
+        class="btn btn-outline-primary btn-sm"
+        >📧 Contacto</a
       >
-        LinkedIn
-      </a>
       <a
-        class="btn btn-outline-secondary"
-        href="https://github.com/Juanmora0314"
+        href="https://github.com/Juanmora0314/BigDataApp_2025_s2"
         target="_blank"
+        class="btn btn-outline-secondary btn-sm"
+        >🐙 Ver repositorio</a
       >
-        GitHub
-      </a>
     </div>
-
-    <p class="text-muted mt-5">
-      Desarrollado por Juan Sebastián Mora Zapata · Proyecto BigData 2025
-    </p>
-  </section>
-</main>
+  </div>
+</section>
 {% endblock %}
